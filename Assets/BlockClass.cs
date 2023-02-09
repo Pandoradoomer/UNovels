@@ -19,8 +19,6 @@ public class BlockClass : ScriptableObject
     public string defaultLabelText = string.Empty;
     public BlockShape blockShape = BlockShape.Rect;
     public Vector2 size = Vector2.zero;
-
-    
 }
 
 public class BlockDrawer
