@@ -44,8 +44,8 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-    bool hasObjectSelected = false;
     int selectedObjIndex = -1;
+    int highlightedObjIndex = -1;
     Vector2 selectMousePos = Vector2.zero;
     Vector2 selectObjPos = Vector2.zero;
 
@@ -55,23 +55,13 @@ public class SceneGraph : EditorWindow
 
         if(GUILayout.Button("Create Rect Node"))
         {
-            blockDrawers.Add(new BlockDrawer()
-            {
-                blockClass = collection.blocks["Rect"],
-                pos = new Vector2(200, 200),
-                callback = DrawRectBlock,
-                collisionCallback = CollideWithRect
-            });
+            BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection);
+            blockDrawers.Add(bd);
         }
         if(GUILayout.Button("Create Diamond Node"))
         {
-            blockDrawers.Add(new BlockDrawer()
-            {
-                blockClass = collection.blocks["Diamond"],
-                pos = new Vector2(200, 200),
-                callback = DrawDiamondBlock,
-                collisionCallback = CollideWithDiamond
-            });
+            BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Diamond, collection);
+            blockDrawers.Add(bd);
         }
 
 
@@ -82,25 +72,26 @@ public class SceneGraph : EditorWindow
         if(Event.current.type == EventType.MouseDown && Event.current.button ==0) 
         {
             Event e = Event.current;
+            bool clickedOnVoid = true;
             for(int i = blockDrawers.Count - 1; i >=0; i--)
             {
                 BlockDrawer bd = blockDrawers[i];
                 if (bd.collisionCallback(e.mousePosition, bd.pos, bd.blockClass))
                 {
+                    clickedOnVoid = false; 
                     SelectBlock(i, e.mousePosition, bd.pos);
-                    //hasObjectSelected = true;
-                    //selectedObjIndex = i;
-                    //selectMousePos = e.mousePosition;
-                    //selectObjPos = bd.pos;
+                    Repaint();
                     break;
 
                 }
             }
+            if(clickedOnVoid)
+                highlightedObjIndex = -1;
         }
         if(Event.current.type == EventType.MouseDrag && Event.current.button == 0)
         {
             //Debug.Log("HIT!");
-            if(hasObjectSelected)
+            if(selectedObjIndex != -1)
             {
                 blockDrawers[selectedObjIndex].pos = selectObjPos + Event.current.mousePosition - selectMousePos;
                 Repaint();
@@ -108,16 +99,24 @@ public class SceneGraph : EditorWindow
         }
         if(Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            if(hasObjectSelected)
+            if(selectedObjIndex != -1)
             {
                 UnselectBlock();
+            }
+        }
+        if(Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Delete || Event.current.keyCode == KeyCode.Backspace))
+        {
+            if(highlightedObjIndex != -1)
+            {
+                blockDrawers.RemoveAt(highlightedObjIndex);
+                highlightedObjIndex= -1;
+                Repaint();
             }
         }
     }
 
     void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
     {
-        hasObjectSelected = true;
         selectMousePos = mousePos;
         selectObjPos = objPos;
         //selecting an object has it be drawn on top;
@@ -125,11 +124,11 @@ public class SceneGraph : EditorWindow
         blockDrawers.RemoveAt(index);
         blockDrawers.Add(block);
         selectedObjIndex = blockDrawers.Count - 1;
+        highlightedObjIndex = selectedObjIndex;
     }
 
     void UnselectBlock()
     {
-        hasObjectSelected = false;
         selectedObjIndex = -1;
         selectMousePos = Vector2.zero;
         selectObjPos = Vector2.zero;
