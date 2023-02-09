@@ -21,7 +21,7 @@ public class SceneGraph : EditorWindow
     {
         blockDrawers = new List<BlockDrawer>();
     }
-
+    #region Drawer Functions
     void DrawRectBlock(Vector2 pos, BlockClass blockClass)
     {
         Handles.color = Color.yellow;
@@ -42,6 +42,8 @@ public class SceneGraph : EditorWindow
         Handles.color = Color.blue;
         Handles.DrawAAConvexPolygon(points);
     }
+    #endregion
+
     bool hasObjectSelected = false;
     int selectedObjIndex = -1;
     Vector2 selectMousePos = Vector2.zero;
@@ -85,10 +87,11 @@ public class SceneGraph : EditorWindow
                 BlockDrawer bd = blockDrawers[i];
                 if (bd.collisionCallback(e.mousePosition, bd.pos, bd.blockClass))
                 {
-                    hasObjectSelected = true;
-                    selectedObjIndex = i;
-                    selectMousePos = e.mousePosition;
-                    selectObjPos = bd.pos;
+                    SelectBlock(i, e.mousePosition, bd.pos);
+                    //hasObjectSelected = true;
+                    //selectedObjIndex = i;
+                    //selectMousePos = e.mousePosition;
+                    //selectObjPos = bd.pos;
                     break;
 
                 }
@@ -107,14 +110,31 @@ public class SceneGraph : EditorWindow
         {
             if(hasObjectSelected)
             {
-                hasObjectSelected = false;
-                selectedObjIndex = -1;
-                selectMousePos = Vector2.zero;
-                selectObjPos = Vector2.zero;
+                UnselectBlock();
             }
         }
     }
 
+    void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
+    {
+        hasObjectSelected = true;
+        selectMousePos = mousePos;
+        selectObjPos = objPos;
+        //selecting an object has it be drawn on top;
+        var block = blockDrawers[index];
+        blockDrawers.RemoveAt(index);
+        blockDrawers.Add(block);
+        selectedObjIndex = blockDrawers.Count - 1;
+    }
+
+    void UnselectBlock()
+    {
+        hasObjectSelected = false;
+        selectedObjIndex = -1;
+        selectMousePos = Vector2.zero;
+        selectObjPos = Vector2.zero;
+    }
+    #region Collider functions
     bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, BlockClass bc)
     {
         //pos is mouse position
@@ -169,4 +189,5 @@ public class SceneGraph : EditorWindow
 
 
     }
+    #endregion
 }
