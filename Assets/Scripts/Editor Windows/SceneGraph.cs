@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;  
+using UnityEditor;
+
+
 public class SceneGraph : EditorWindow
 {
-
-    List<Vector2> rectPos = new List<Vector2>();
-    List<Vector2> diamondPos = new List<Vector2>();
-
 
     [MenuItem("VN_Engine/Scene Graph")]
     static void ShowEditor()
@@ -26,9 +24,23 @@ public class SceneGraph : EditorWindow
 
     void DrawRectBlock(Vector2 pos, BlockClass blockClass)
     {
+        Handles.color = Color.yellow;
         Handles.DrawSolidRectangleWithOutline(
             new Rect(pos, blockClass.size),
             Color.yellow, Color.red);
+    }
+
+    void DrawDiamondBlock(Vector2 pos, BlockClass blockClass)
+    {
+        Vector3[] points =
+        {
+            new Vector2(pos.x - blockClass.size.x, pos.y),
+            new Vector2(pos.x, pos.y + blockClass.size.y),
+            new Vector2(pos.x + blockClass.size.x, pos.y),
+            new Vector2(pos.x, pos.y - blockClass.size.y)
+        };
+        Handles.color = Color.blue;
+        Handles.DrawAAConvexPolygon(points);
     }
     bool hasObjectSelected = false;
     int selectedObjIndex = -1;
@@ -45,12 +57,19 @@ public class SceneGraph : EditorWindow
             {
                 blockClass = collection.blocks["Rect"],
                 pos = new Vector2(200, 200),
-                callback = DrawRectBlock
+                callback = DrawRectBlock,
+                collisionCallback = CollideWithRect
             });
         }
         if(GUILayout.Button("Create Diamond Node"))
         {
-            diamondPos.Add(new Vector2(350, 100));
+            blockDrawers.Add(new BlockDrawer()
+            {
+                blockClass = collection.blocks["Diamond"],
+                pos = new Vector2(200, 200),
+                callback = DrawDiamondBlock,
+                collisionCallback = CollideWithDiamond
+            });
         }
 
 
@@ -61,24 +80,26 @@ public class SceneGraph : EditorWindow
         if(Event.current.type == EventType.MouseDown && Event.current.button ==0) 
         {
             Event e = Event.current;
-            for(int i = 0; i < rectPos.Count; i++)
+            for(int i = blockDrawers.Count - 1; i >=0; i--)
             {
-                var rp = rectPos[i];
-                if (CollideWithRect(e.mousePosition, rp, new Vector2(100, 40)))
+                BlockDrawer bd = blockDrawers[i];
+                if (bd.collisionCallback(e.mousePosition, bd.pos, bd.blockClass))
                 {
                     hasObjectSelected = true;
                     selectedObjIndex = i;
                     selectMousePos = e.mousePosition;
-                    selectObjPos = rp;
+                    selectObjPos = bd.pos;
+                    break;
+
                 }
             }
         }
         if(Event.current.type == EventType.MouseDrag && Event.current.button == 0)
         {
-            Debug.Log("HIT!");
+            //Debug.Log("HIT!");
             if(hasObjectSelected)
             {
-                rectPos[selectedObjIndex] = selectObjPos + Event.current.mousePosition - selectMousePos;
+                blockDrawers[selectedObjIndex].pos = selectObjPos + Event.current.mousePosition - selectMousePos;
                 Repaint();
             }
         }
@@ -94,26 +115,58 @@ public class SceneGraph : EditorWindow
         }
     }
 
-    bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, Vector2 rectSize)
+    bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, BlockClass bc)
     {
-        if (pos.x > rectTopleft.x && pos.x < rectTopleft.x + rectSize.x &&
-           pos.y > rectTopleft.y && pos.y < rectTopleft.y + rectSize.y)
+        //pos is mouse position
+        //rectTopLeft is top left of the rect, because that's how Handles draws it
+        if (pos.x > rectTopleft.x && pos.x < rectTopleft.x + bc.size.x &&
+           pos.y > rectTopleft.y && pos.y < rectTopleft.y + bc.size.y)
             return true;
         return false;
     }
 
-    int diaWidth = 50;
-    int diaHeight = 20;
-    private void DrawDiamond(Vector2 pos)
+    bool CollideWithDiamond(Vector2 pos, Vector2 diaPos, BlockClass bc)
     {
-        Vector3[] points =
-        {
-            new Vector2(pos.x - diaWidth, pos.y),
-            new Vector2(pos.x, pos.y + diaHeight),
-            new Vector2(pos.x + diaWidth, pos.y),
-            new Vector2(pos.x, pos.y - diaHeight)
-        };
-        Handles.color = Color.blue;
-        Handles.DrawAAConvexPolygon(points);
+        /*
+        //pos is mouse position
+        //diaPos is the centre of the diamond (intersection of the 2 diagonals)
+        //bc.size gives the half-sizes of the bounding rectangle
+
+        //Heuristic 1: perfect precision, high computation time:
+        //Split the diamond in two triangles; test if the mouse is in either triangle
+
+        var v1 = diaPos + Vector2.up * bc.size.y; //top of the diamond
+        var v2 = diaPos + Vector2.right * bc.size.x; // right of the diamond
+        var v3 = diaPos + Vector2.down * bc.size.y; //bottom of the diamond
+        var v4 = diaPos + Vector2.left * bc.size.x; //left of the diamond
+
+        //luckily, the two triangles have the same area: half the product of the x,y of bc.size
+
+        float area1 = Mathf.Abs((v1.x - pos.x) * (v3.y - pos.y) - (v3.x - pos.x) * (v1.y - pos.y));
+        float area2 = Mathf.Abs((v3.x - pos.x) * (v4.y - pos.y) - (v4.x - pos.x) * (v3.y - pos.y));
+        float area3 = Mathf.Abs((v4.x - pos.x) * (v1.y - pos.y) - (v1.x - pos.x) * (v4.y - pos.y));
+
+        bool tri1 = ((area1 + area2 + area3) == ((bc.size.x * bc.size.y) / 2.0f));
+
+        area1 = Mathf.Abs((v1.x - pos.x) * (v2.y - pos.y) - (v2.x - pos.x) * (v1.y - pos.y));
+        area2 = Mathf.Abs((v2.x - pos.x) * (v3.y - pos.y) - (v3.x - pos.x) * (v2.y - pos.y));
+        area3 = Mathf.Abs((v3.x - pos.x) * (v1.y - pos.y) - (v1.x - pos.x) * (v3.y - pos.y));
+
+        bool tri2 = ((area1 + area2 + area3) == ((bc.size.x * bc.size.y) / 2.0f));
+
+        return tri1 || tri2;*/
+
+        //Heuristic 2: lower precision, lower computation time:
+        //collide with the diamond's bounding box instead of the diamond
+
+        Vector2 topLeft = diaPos - new Vector2(bc.size.x, bc.size.y);
+
+        if (pos.x > topLeft.x && pos.x < topLeft.x + bc.size.x * 2 &&
+           pos.y > topLeft.y && pos.y < topLeft.y + bc.size.y * 2)
+            return true;
+        return false;
+
+
+
     }
 }

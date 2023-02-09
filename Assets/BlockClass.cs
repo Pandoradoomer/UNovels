@@ -10,6 +10,7 @@ public enum BlockShape
 }
 
 public delegate void BlockDrawerCallback(Vector2 pos, BlockClass blockClass);
+public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass);
 
 [CreateAssetMenu(fileName = "BlockShape", menuName = "VN_Engine/Blocks/BlockShape")]
 public class BlockClass : ScriptableObject
@@ -27,5 +28,6 @@ public class BlockDrawer
     public BlockClass blockClass;
     public Vector2 pos;
     public BlockDrawerCallback callback;
+    public BlockCollisionCallback collisionCallback;
 
 }
