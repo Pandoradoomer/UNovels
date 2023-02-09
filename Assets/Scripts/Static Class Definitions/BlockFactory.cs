@@ -1,5 +1,7 @@
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,7 +21,7 @@ public class BlockFactory
         }
         return bd;
     }
-
+    #region Create Drawer Factory Functions
     private static BlockDrawer CreateRectDrawer(BlockClassCollection collection)
     {
         BlockDrawer bd = new BlockDrawer()
@@ -44,7 +46,7 @@ public class BlockFactory
         return bd;
     }
 
-
+    #endregion
 
     #region Collider functions
     static bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, BlockClass bc)
@@ -125,4 +127,70 @@ public class BlockFactory
         Handles.DrawAAConvexPolygon(points);
     }
     #endregion
+
+    public static BlockContents CreateBlockContent(BlockDrawer bd)
+    {
+        BlockContents bc = new BlockContents()
+        {
+            labelText = bd.blockClass.defaultLabelText,
+            drawer = bd,
+            dialogue = new List<string>()
+
+        };
+        return bc;
+    }
+
+    static BlockDrawerCallback GetBlockDrawerCallback(BlockContents bc)
+    {
+        switch(bc.drawer.blockClass.blockShape)
+        {
+            case BlockShape.Rect:
+                return DrawRectBlock;
+            case BlockShape.Diamond:
+                return DrawDiamondBlock;
+
+        }
+        return null;
+    }
+
+    static BlockCollisionCallback GetBlockCollisionCallback(BlockContents bc)
+    {
+        switch(bc.drawer.blockClass.blockShape)
+        {
+            case BlockShape.Rect:
+                return CollideWithRect;
+            case BlockShape.Diamond:
+                return CollideWithDiamond;
+        }
+        return null;
+    }
+
+    public static BlockDrawer CreateBlockDrawer(BlockContents bc)
+    {
+        BlockDrawerCallback bdc = GetBlockDrawerCallback(bc);
+        BlockCollisionCallback bcc = GetBlockCollisionCallback(bc);
+        BlockDrawer bc2 = new BlockDrawer()
+        {
+            blockClass = bc.drawer.blockClass.BlockClass(),
+            pos = bc.drawer.pos.Vector2(),
+            callback = bdc,
+            collisionCallback = bcc
+        };
+        return bc2;
+    }
+
+    public static List<BlockContents> MakeBlockContentsFromJSON()
+    {
+        var data = File.ReadAllText(Application.dataPath + "/Stored Data/data.json");
+        List<BlockContents> blockContents = JsonConvert.DeserializeObject<List<BlockContents>>(data);
+        return blockContents;
+    }
+
+    public static void WriteToJSON(List<BlockContents> blockContents)
+    {
+        var outputString = JsonConvert.SerializeObject(blockContents);
+        File.WriteAllText(Application.dataPath + "/Stored Data/data.json", outputString);
+
+    }
+
 }

@@ -1,3 +1,6 @@
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -27,5 +30,95 @@ public class BlockDrawer
     public Vector2 pos;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
+
+}
+
+[Serializable]
+public class SerializableVector2
+{
+    public float x;
+    public float y;
+
+    [JsonConstructor]
+    public SerializableVector2(float x, float y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+    public SerializableVector2(Vector2 v)
+    {
+        x = v.x;
+        y = v.y;
+    }
+    public Vector2 Vector2()
+    {
+        return new Vector2(x, y);
+    }
+}
+
+[Serializable]
+public class SerializableBlockClass
+{
+    public string defaultLabelText;
+    public BlockShape blockShape;
+    public SerializableVector2 size;
+
+    [JsonConstructor]
+    public SerializableBlockClass(string defaultLabelText, BlockShape blockShape, SerializableVector2 size)
+    {
+        this.defaultLabelText = defaultLabelText;
+        this.blockShape = blockShape;
+        this.size = size;
+    }
+    public SerializableBlockClass(BlockClass bc)
+    {
+        this.defaultLabelText = bc.defaultLabelText;
+        this.blockShape = bc.blockShape;
+        this.size = new SerializableVector2(bc.size);
+    }
+
+    public BlockClass BlockClass()
+    {
+        BlockClass bc = new BlockClass()
+        {
+            size = this.size.Vector2(),
+            blockShape = this.blockShape,
+            defaultLabelText = this.defaultLabelText
+        };
+        return bc;
+    }
+}
+
+[Serializable]
+public class SerializableBlockDrawer
+{
+    public SerializableBlockClass blockClass;
+    public SerializableVector2 pos;
+
+    [JsonConstructor]
+    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos)
+    {
+        this.blockClass = blockClass;
+        this.pos = pos;
+    }
+
+    public SerializableBlockDrawer(BlockDrawer bd)
+    {
+        blockClass = new SerializableBlockClass(bd.blockClass);
+        pos = new SerializableVector2(bd.pos);
+    }
+
+    public static implicit operator SerializableBlockDrawer(BlockDrawer bd)
+    {
+        return new SerializableBlockDrawer(bd);
+    }
+}
+
+[Serializable]
+public class BlockContents
+{
+    public string labelText;
+    public SerializableBlockDrawer drawer;
+    public List<string> dialogue;
 
 }

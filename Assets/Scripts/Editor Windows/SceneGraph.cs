@@ -15,11 +15,21 @@ public class SceneGraph : EditorWindow
 
     [SerializeField]
     BlockClassCollection collection;
+    //for now, until a better solution is found, let's keep both lists ordered by the same index
+    //i.e. blockDrawers[2] will draw info from blockContents[2];
     List<BlockDrawer> blockDrawers;
+    List<BlockContents> blockContents;
     
     private void OnEnable()
     {
+        //blockDrawers = new List<BlockDrawer>();
+        blockContents = BlockFactory.MakeBlockContentsFromJSON();
         blockDrawers = new List<BlockDrawer>();
+        foreach(var bc in blockContents)
+        {
+            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
+        }
+        
     }
 
     int selectedObjIndex = -1;
@@ -30,7 +40,7 @@ public class SceneGraph : EditorWindow
 
     private void OnGUI()
     {
-
+        //TODO: simplify/modularise
         if(GUILayout.Button("Create Rect Node"))
         {
             BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection);
@@ -111,5 +121,16 @@ public class SceneGraph : EditorWindow
         selectMousePos = Vector2.zero;
         selectObjPos = Vector2.zero;
     }
-    
+
+    private void OnDestroy()
+    {
+        blockContents.Clear();
+        foreach(var bd in blockDrawers)
+        {
+            var bc = BlockFactory.CreateBlockContent(bd);
+            blockContents.Add(bc);
+        }
+        BlockFactory.WriteToJSON(blockContents);
+    }
+
 }
