@@ -34,9 +34,11 @@ public class SceneGraph : EditorWindow
 
     int selectedObjIndex = -1;
     int highlightedObjIndex = -1;
+    int toLinkObjIndex = -1;
     Vector2 selectMousePos = Vector2.zero;
     Vector2 selectObjPos = Vector2.zero;
 
+    
 
     private void OnGUI()
     {
@@ -55,33 +57,61 @@ public class SceneGraph : EditorWindow
 
         foreach(var bd in blockDrawers)
         {
-            if(highlightedObjIndex != -1)
+            if (bd.blockLink != -1)
+            {
+                Handles.color = Color.white;
+                Handles.DrawLine(bd.pos, blockDrawers[bd.blockLink].pos);
+            }
+            if (highlightedObjIndex != -1)
             {
                 if (blockDrawers.IndexOf(bd) == highlightedObjIndex)
                     bd.highlightDrawCallback(bd.pos, bd.blockClass);
             }
             bd.callback.Invoke(bd.pos, bd.blockClass);
             bd.labelDrawCallback.Invoke(bd.pos, bd.labelText, bd.blockClass);
+            
+        }
+        if(Event.current.type == EventType.MouseDown && Event.current.button ==1)
+        {
+            
+            int index = CheckBlockCollision(Event.current.mousePosition);
+            if(index != -1)
+            {
+                highlightedObjIndex = index;
+                Repaint();
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
+                if (blockDrawers[index].blockLink == -1)
+                {
+                    menu.AddDisabledItem(new GUIContent("Remove link"), false);
+                }
+                else
+                {
+                    menu.AddItem(new GUIContent("Remove link"), false, UnlinkCallback, index);
+                }
+
+                menu.ShowAsContext();
+            }
         }
         if(Event.current.type == EventType.MouseDown && Event.current.button ==0) 
         {
             Event e = Event.current;
             bool clickedOnVoid = true;
-            for(int i = blockDrawers.Count - 1; i >=0; i--)
+            int index = CheckBlockCollision(e.mousePosition);
+            if (index != -1)
             {
-                BlockDrawer bd = blockDrawers[i];
-                if (bd.collisionCallback(e.mousePosition, bd.pos, bd.blockClass))
+                clickedOnVoid = false;
+                SelectBlock(index, e.mousePosition, blockDrawers[index].pos);
+                if(toLinkObjIndex != -1)
                 {
-                    clickedOnVoid = false; 
-                    SelectBlock(i, e.mousePosition, bd.pos);
-                    Repaint();
-                    break;
-
+                    LinkBlocks(toLinkObjIndex, index);
                 }
+                Repaint();
             }
             if (clickedOnVoid)
             {
                 highlightedObjIndex = -1;
+                toLinkObjIndex = -1;
                 Repaint();
             }
         }
@@ -111,6 +141,37 @@ public class SceneGraph : EditorWindow
         }
     }
 
+    void LinkCallback(object userData)
+    {
+        int? selectedIndex = userData as int?;
+
+        toLinkObjIndex = selectedIndex.Value;
+    }
+    void UnlinkCallback(object userData)
+    {
+        int? selectedIndex = userData as int?;
+        blockDrawers[selectedIndex.Value].blockLink = -1;
+    }
+    
+    void LinkBlocks(int firstPart, int lastPart)
+    {
+        blockDrawers[firstPart].blockLink = lastPart;
+    }
+
+    int CheckBlockCollision(Vector2 mousePos)
+    {
+        int collisionIndex = -1;
+        for(int i = blockDrawers.Count - 1; i >=0; i--)
+        {
+            BlockDrawer bd = blockDrawers[i];
+            if(bd.collisionCallback(mousePos, bd.pos, bd.blockClass))
+            {
+                collisionIndex = i;
+                break;
+            }
+        }
+        return collisionIndex;
+    }
     void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
     {
         selectMousePos = mousePos;

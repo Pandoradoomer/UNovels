@@ -31,6 +31,7 @@ public class BlockDrawer
     public BlockClass blockClass;
     public Vector2 pos;
     public string labelText;
+    public int blockLink = -1;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
     public BlockLabelDrawCallback labelDrawCallback;
@@ -100,13 +101,15 @@ public class SerializableBlockDrawer
     public SerializableBlockClass blockClass;
     public SerializableVector2 pos;
     public string text;
+    public int blockLink;
 
     [JsonConstructor]
-    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text)
+    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink)
     {
         this.blockClass = blockClass;
         this.pos = pos;
         this.text = text;
+        this.blockLink = blockLink;
     }
 
     public SerializableBlockDrawer(BlockDrawer bd)

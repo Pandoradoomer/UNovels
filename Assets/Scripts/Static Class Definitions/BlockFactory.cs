@@ -260,6 +260,7 @@ public class BlockFactory
         {
             blockClass = bc.drawer.blockClass.BlockClass(),
             pos = bc.drawer.pos.Vector2(),
+            blockLink = bc.drawer.blockLink,
             labelText = bc.drawer.text,
             callback = bdc,
             collisionCallback = bcc,
