@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class BlockFactory 
 {
+    
+
     public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection)
     {
         BlockDrawer bd = new BlockDrawer();
@@ -24,24 +26,32 @@ public class BlockFactory
     #region Create Drawer Factory Functions
     private static BlockDrawer CreateRectDrawer(BlockClassCollection collection)
     {
+        BlockClass bc = collection.blocks["Rect"];
         BlockDrawer bd = new BlockDrawer()
         {
-            blockClass = collection.blocks["Rect"],
+            blockClass = bc,
             pos = new Vector2(200, 200),
+            labelText = bc.defaultLabelText,
             callback = DrawRectBlock,
-            collisionCallback = CollideWithRect
+            collisionCallback = CollideWithRect,
+            highlightDrawCallback = DrawHighlightRectBlock,
+            labelDrawCallback = DrawLabelRect
         };
         return bd;
     }
 
     private static BlockDrawer CreateDiamondDrawer(BlockClassCollection collection)
     {
+        BlockClass bc = collection.blocks["Diamond"];
         BlockDrawer bd = new BlockDrawer()
         {
-            blockClass = collection.blocks["Diamond"],
+            blockClass = bc,
             pos = new Vector2(200, 200),
+            labelText = bc.defaultLabelText,
             callback = DrawDiamondBlock,
-            collisionCallback = CollideWithDiamond
+            collisionCallback = CollideWithDiamond,
+            highlightDrawCallback = DrawHighlightDiamondBlock,
+            labelDrawCallback = DrawLabelDiamond
         };
         return bd;
     }
@@ -111,7 +121,7 @@ public class BlockFactory
         Handles.color = Color.yellow;
         Handles.DrawSolidRectangleWithOutline(
             new Rect(pos, blockClass.size),
-            Color.yellow, Color.red);
+            Color.yellow, Color.clear);
     }
 
     static void DrawDiamondBlock(Vector2 pos, BlockClass blockClass)
@@ -126,13 +136,64 @@ public class BlockFactory
         Handles.color = Color.blue;
         Handles.DrawAAConvexPolygon(points);
     }
+
+    static void DrawHighlightRectBlock(Vector2 pos, BlockClass blockClass)
+    {
+        Vector2 offset = Vector2.one * 2.0f;
+        Handles.color = Color.green;
+        Handles.DrawSolidRectangleWithOutline(
+            new Rect(pos - offset, blockClass.size + offset * 2.0f),
+            Color.green, Color.clear);
+    }
+
+    static void DrawHighlightDiamondBlock(Vector2 pos, BlockClass blockClass)
+    {
+        float highlightOffset = 2.0f;
+        Vector3[] points =
+        {
+            new Vector2(pos.x - (blockClass.size.x + highlightOffset), pos.y),
+            new Vector2(pos.x, pos.y + (blockClass.size.y + highlightOffset)),
+            new Vector2(pos.x + (blockClass.size.x + highlightOffset), pos.y),
+            new Vector2(pos.x, pos.y - (blockClass.size.y + highlightOffset))
+        };
+        Handles.color = Color.green;
+        Handles.DrawAAConvexPolygon(points);
+    }
+
+    static void DrawLabelRect(Vector2 pos, string text, BlockClass blockClass)
+    {
+        GUIStyle labelStyle = new GUIStyle()
+        {
+            normal = new GUIStyleState() { textColor = Color.black },
+            fontSize = 12,
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fixedHeight = blockClass.size.y,
+            fixedWidth = blockClass.size.x
+        };
+        Vector2 offset = new Vector2(blockClass.size.x / 2.0f, blockClass.size.y / 2.0f);
+        Handles.Label(pos + offset, text, labelStyle);
+    }
+
+    static void DrawLabelDiamond(Vector2 pos, string text, BlockClass blockClass)
+    {
+        GUIStyle labelStyle = new GUIStyle()
+        {
+            normal = new GUIStyleState() { textColor = Color.black },
+            fontSize = 12,
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fixedHeight = blockClass.size.y * 2.0f + 2,
+            fixedWidth = blockClass.size.x * 2.0f + 2
+        };
+        Handles.Label(pos, text, labelStyle);
+    }
     #endregion
 
     public static BlockContents CreateBlockContent(BlockDrawer bd)
     {
         BlockContents bc = new BlockContents()
         {
-            labelText = bd.blockClass.defaultLabelText,
             drawer = bd,
             dialogue = new List<string>()
 
@@ -153,6 +214,30 @@ public class BlockFactory
         return null;
     }
 
+    static BlockHighlightDrawCallback GetBlockDrawerHighlightCallback(BlockContents bc)
+    {
+        switch(bc.drawer.blockClass.blockShape)
+        {
+            case BlockShape.Rect:
+                return DrawHighlightRectBlock;
+            case BlockShape.Diamond:
+                return DrawHighlightDiamondBlock;
+        }
+        return null;
+    }
+
+    static BlockLabelDrawCallback GetBlockLabelDrawCallback(BlockContents bc)
+    {
+        switch (bc.drawer.blockClass.blockShape)
+        {
+            case BlockShape.Rect:
+                return DrawLabelRect;
+            case BlockShape.Diamond:
+                return DrawLabelDiamond;
+        }
+        return null;
+    }
+
     static BlockCollisionCallback GetBlockCollisionCallback(BlockContents bc)
     {
         switch(bc.drawer.blockClass.blockShape)
@@ -169,12 +254,17 @@ public class BlockFactory
     {
         BlockDrawerCallback bdc = GetBlockDrawerCallback(bc);
         BlockCollisionCallback bcc = GetBlockCollisionCallback(bc);
+        BlockHighlightDrawCallback bhdc = GetBlockDrawerHighlightCallback(bc);
+        BlockLabelDrawCallback bldc = GetBlockLabelDrawCallback(bc);
         BlockDrawer bc2 = new BlockDrawer()
         {
             blockClass = bc.drawer.blockClass.BlockClass(),
             pos = bc.drawer.pos.Vector2(),
+            labelText = bc.drawer.text,
             callback = bdc,
-            collisionCallback = bcc
+            collisionCallback = bcc,
+            highlightDrawCallback  = bhdc,
+            labelDrawCallback = bldc
         };
         return bc2;
     }

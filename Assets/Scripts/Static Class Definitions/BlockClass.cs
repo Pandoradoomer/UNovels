@@ -14,6 +14,8 @@ public enum BlockShape
 
 public delegate void BlockDrawerCallback(Vector2 pos, BlockClass blockClass);
 public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass);
+public delegate void BlockLabelDrawCallback(Vector2 pos, string text, BlockClass blockClass);
+public delegate void BlockHighlightDrawCallback(Vector2 pos, BlockClass blockClass);
 
 [CreateAssetMenu(fileName = "BlockShape", menuName = "VN_Engine/Blocks/BlockShape")]
 public class BlockClass : ScriptableObject
@@ -28,8 +30,11 @@ public class BlockDrawer
 {
     public BlockClass blockClass;
     public Vector2 pos;
+    public string labelText;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
+    public BlockLabelDrawCallback labelDrawCallback;
+    public BlockHighlightDrawCallback highlightDrawCallback;
 
 }
 
@@ -94,18 +99,21 @@ public class SerializableBlockDrawer
 {
     public SerializableBlockClass blockClass;
     public SerializableVector2 pos;
+    public string text;
 
     [JsonConstructor]
-    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos)
+    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text)
     {
         this.blockClass = blockClass;
         this.pos = pos;
+        this.text = text;
     }
 
     public SerializableBlockDrawer(BlockDrawer bd)
     {
         blockClass = new SerializableBlockClass(bd.blockClass);
         pos = new SerializableVector2(bd.pos);
+        text = bd.labelText;
     }
 
     public static implicit operator SerializableBlockDrawer(BlockDrawer bd)
@@ -117,7 +125,6 @@ public class SerializableBlockDrawer
 [Serializable]
 public class BlockContents
 {
-    public string labelText;
     public SerializableBlockDrawer drawer;
     public List<string> dialogue;
 

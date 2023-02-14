@@ -55,7 +55,13 @@ public class SceneGraph : EditorWindow
 
         foreach(var bd in blockDrawers)
         {
+            if(highlightedObjIndex != -1)
+            {
+                if (blockDrawers.IndexOf(bd) == highlightedObjIndex)
+                    bd.highlightDrawCallback(bd.pos, bd.blockClass);
+            }
             bd.callback.Invoke(bd.pos, bd.blockClass);
+            bd.labelDrawCallback.Invoke(bd.pos, bd.labelText, bd.blockClass);
         }
         if(Event.current.type == EventType.MouseDown && Event.current.button ==0) 
         {
@@ -73,12 +79,14 @@ public class SceneGraph : EditorWindow
 
                 }
             }
-            if(clickedOnVoid)
+            if (clickedOnVoid)
+            {
                 highlightedObjIndex = -1;
+                Repaint();
+            }
         }
         if(Event.current.type == EventType.MouseDrag && Event.current.button == 0)
         {
-            //Debug.Log("HIT!");
             if(selectedObjIndex != -1)
             {
                 blockDrawers[selectedObjIndex].pos = selectObjPos + Event.current.mousePosition - selectMousePos;
