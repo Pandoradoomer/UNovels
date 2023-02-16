@@ -7,51 +7,51 @@ using UnityEngine;
 
 public class BlockFactory 
 {
-    
-
-    public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection)
+    public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection, Vector2 pos)
     {
         BlockDrawer bd = new BlockDrawer();
         switch(type)
         {
             case BlockShape.Rect:
-                bd = CreateRectDrawer(collection);
+                bd = CreateRectDrawer(collection, pos);
                 break;
             case BlockShape.Diamond:
-                bd = CreateDiamondDrawer(collection);
+                bd = CreateDiamondDrawer(collection, pos);
                 break;
         }
         return bd;
     }
-    #region Create Drawer Factory Functions
-    private static BlockDrawer CreateRectDrawer(BlockClassCollection collection)
+    #region Block Drawer Factory Functions
+    private static BlockDrawer CreateRectDrawer(BlockClassCollection collection, Vector2 pos)
     {
         BlockClass bc = collection.blocks["Rect"];
         BlockDrawer bd = new BlockDrawer()
         {
             blockClass = bc,
-            pos = new Vector2(200, 200),
+            pos = pos,
             labelText = bc.defaultLabelText,
             callback = DrawRectBlock,
             collisionCallback = CollideWithRect,
             highlightDrawCallback = DrawHighlightRectBlock,
-            labelDrawCallback = DrawLabelRect
+            labelDrawCallback = DrawLabelRect,
+            blockCentre = GetRectCentre
         };
         return bd;
     }
 
-    private static BlockDrawer CreateDiamondDrawer(BlockClassCollection collection)
+    private static BlockDrawer CreateDiamondDrawer(BlockClassCollection collection, Vector2 pos)
     {
         BlockClass bc = collection.blocks["Diamond"];
         BlockDrawer bd = new BlockDrawer()
         {
             blockClass = bc,
-            pos = new Vector2(200, 200),
+            pos = pos,
             labelText = bc.defaultLabelText,
             callback = DrawDiamondBlock,
             collisionCallback = CollideWithDiamond,
             highlightDrawCallback = DrawHighlightDiamondBlock,
-            labelDrawCallback = DrawLabelDiamond
+            labelDrawCallback = DrawLabelDiamond,
+            blockCentre = GetDiamondCentre
         };
         return bd;
     }
@@ -188,19 +188,17 @@ public class BlockFactory
         };
         Handles.Label(pos, text, labelStyle);
     }
+    static Vector3 GetRectCentre(Vector2 pos, BlockClass blockClass)
+    {
+        return pos + blockClass.size / 2;
+    }
+    static Vector3 GetDiamondCentre(Vector2 pos, BlockClass blockClass)
+    {
+        return pos;
+    }
     #endregion
 
-    public static BlockContents CreateBlockContent(BlockDrawer bd)
-    {
-        BlockContents bc = new BlockContents()
-        {
-            drawer = bd,
-            dialogue = new List<string>()
-
-        };
-        return bc;
-    }
-
+    #region Block Callback Getters
     static BlockDrawerCallback GetBlockDrawerCallback(BlockContents bc)
     {
         switch(bc.drawer.blockClass.blockShape)
@@ -249,39 +247,94 @@ public class BlockFactory
         }
         return null;
     }
+    static GetBlockCentre GetBlockCentre(BlockContents bc)
+    {
+        switch(bc.drawer.blockClass.blockShape)
+        {
+            case BlockShape.Rect:
+                return GetRectCentre;
+            case BlockShape.Diamond:
+                return GetDiamondCentre;
+        }
+        return null;
+    }
+    #endregion
 
+    #region Creator Functions
+    public static BlockContents CreateBlockContent(BlockDrawer bd, List<BlockDrawer> blockDrawers)
+    {
+        SerializableBlockDrawer d = new SerializableBlockDrawer()
+        {
+            blockClass = bd.blockClass,
+            pos = new SerializableVector2(bd.pos),
+            text = bd.labelText,
+            blockLink = bd.blockLink == null ? -1 : blockDrawers.IndexOf(bd.blockLink)
+
+        };
+        BlockContents bc = new BlockContents()
+        {
+            drawer = d,
+            dialogue = new List<string>()
+
+        };
+        return bc;
+    }
     public static BlockDrawer CreateBlockDrawer(BlockContents bc)
     {
         BlockDrawerCallback bdc = GetBlockDrawerCallback(bc);
         BlockCollisionCallback bcc = GetBlockCollisionCallback(bc);
         BlockHighlightDrawCallback bhdc = GetBlockDrawerHighlightCallback(bc);
         BlockLabelDrawCallback bldc = GetBlockLabelDrawCallback(bc);
+        GetBlockCentre bct = GetBlockCentre(bc);
         BlockDrawer bc2 = new BlockDrawer()
         {
             blockClass = bc.drawer.blockClass.BlockClass(),
             pos = bc.drawer.pos.Vector2(),
-            blockLink = bc.drawer.blockLink,
+            blockLink = null,
             labelText = bc.drawer.text,
             callback = bdc,
             collisionCallback = bcc,
             highlightDrawCallback  = bhdc,
-            labelDrawCallback = bldc
+            labelDrawCallback = bldc,
+            blockCentre = bct
         };
         return bc2;
     }
 
+    public static void CreateLinks(List<BlockDrawer> drawers, List<BlockContents> contents)
+    {
+        for(int i = 0; i < drawers.Count; i++)
+        {
+            int index = contents[i].drawer.blockLink;
+            drawers[i].blockLink = index == -1 ? null : drawers[index];
+        }
+    }
+    #endregion
+
     public static List<BlockContents> MakeBlockContentsFromJSON()
     {
-        var data = File.ReadAllText(Application.dataPath + "/Stored Data/data.json");
+        var data = File.ReadAllText(Application.dataPath + "/Stored Data/blockData.json");
         List<BlockContents> blockContents = JsonConvert.DeserializeObject<List<BlockContents>>(data);
         return blockContents;
     }
+    public static WorldData MakeWorldDataFromJSON()
+    {
+        var data = File.ReadAllText(Application.dataPath + "/Stored Data/worldData.json");
+        WorldData worldData = JsonConvert.DeserializeObject<WorldData>(data);
+        return worldData;
+    }
 
-    public static void WriteToJSON(List<BlockContents> blockContents)
+    public static void WriteBlocksToJSON(List<BlockContents> blockContents)
     {
         var outputString = JsonConvert.SerializeObject(blockContents);
-        File.WriteAllText(Application.dataPath + "/Stored Data/data.json", outputString);
+        File.WriteAllText(Application.dataPath + "/Stored Data/blockData.json", outputString);
 
+    }
+
+    public static void WriteWorldDataToJSON(WorldData data)
+    {
+        var outputString = JsonConvert.SerializeObject(data);
+        File.WriteAllText(Application.dataPath + "/Stored Data/worldData.json", outputString);
     }
 
 }

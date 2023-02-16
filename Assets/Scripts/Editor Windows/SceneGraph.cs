@@ -2,15 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-
+using UnityEditor.ShaderGraph.Internal;
 
 public class SceneGraph : EditorWindow
 {
 
+    #region Init Functions
     [MenuItem("VN_Engine/Scene Graph")]
     static void ShowEditor()
     {
         SceneGraph sceneGraph = EditorWindow.GetWindow<SceneGraph>();
+        sceneGraph.minSize = new Vector2(600.0f, 1000.0f);
     }
 
     [SerializeField]
@@ -29,49 +31,68 @@ public class SceneGraph : EditorWindow
         {
             blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
         }
+
+        BlockFactory.CreateLinks(blockDrawers, blockContents);
+        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
         
     }
+
+    #endregion
 
     int selectedObjIndex = -1;
     int highlightedObjIndex = -1;
     int toLinkObjIndex = -1;
+    BlockDrawer bdToLink = null;
     Vector2 selectMousePos = Vector2.zero;
     Vector2 selectObjPos = Vector2.zero;
 
-    
+    Vector2 currentWorldOrigin = Vector2.zero;
+    Vector2 clickStartPos = Vector2.zero;
+
+    bool controlPressed = false;
 
     private void OnGUI()
     {
+
         //TODO: simplify/modularise
-        if(GUILayout.Button("Create Rect Node"))
+        GUILayout.BeginVertical();
+        GUILayout.Label("To Link: " + toLinkObjIndex);
+        GUILayout.Label("Current World Origin: " + currentWorldOrigin);
+        GUILayout.Label("Current Highlighted Obj World Pos " + (highlightedObjIndex == -1 ? Vector2.zero : blockDrawers[highlightedObjIndex].pos));
+        GUILayout.Label("Current Highlighted Obj Screen Pos " + (highlightedObjIndex == -1 ? Vector2.zero : blockDrawers[highlightedObjIndex].pos + currentWorldOrigin));
+        if (GUILayout.Button("Reset World Origin"))
         {
-            BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection);
-            blockDrawers.Add(bd);
+            currentWorldOrigin = Vector2.zero;
         }
-        if(GUILayout.Button("Create Diamond Node"))
-        {
-            BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Diamond, collection);
-            blockDrawers.Add(bd);
-        }
+        //zoomValue = GUILayout.HorizontalSlider(zoomValue, minZoomValue, maxZoomValue);
+        //GUILayout.Label("Zoom: " + zoomValue);
 
-
-        foreach(var bd in blockDrawers)
+        GUILayout.EndVertical();
+        //Draw
+        foreach (var bd in blockDrawers)
         {
-            if (bd.blockLink != -1)
+            if (bd.blockLink != null)
             {
                 Handles.color = Color.white;
-                Handles.DrawLine(bd.pos, blockDrawers[bd.blockLink].pos);
+                DrawLink(bd, bd.blockLink);
             }
+        }
+
+        foreach (var bd in blockDrawers)
+        {
             if (highlightedObjIndex != -1)
             {
                 if (blockDrawers.IndexOf(bd) == highlightedObjIndex)
-                    bd.highlightDrawCallback(bd.pos, bd.blockClass);
+                    bd.highlightDrawCallback(bd.pos + currentWorldOrigin, bd.blockClass);
             }
-            bd.callback.Invoke(bd.pos, bd.blockClass);
-            bd.labelDrawCallback.Invoke(bd.pos, bd.labelText, bd.blockClass);
-            
+            bd.callback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
+            bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, bd.blockClass);
+
         }
-        if(Event.current.type == EventType.MouseDown && Event.current.button ==1)
+
+        //right-click
+        if (Event.current.type == EventType.MouseDown && Event.current.button == 1)
         {
             
             int index = CheckBlockCollision(Event.current.mousePosition);
@@ -81,7 +102,7 @@ public class SceneGraph : EditorWindow
                 Repaint();
                 GenericMenu menu = new GenericMenu();
                 menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
-                if (blockDrawers[index].blockLink == -1)
+                if (blockDrawers[index].blockLink == null)
                 {
                     menu.AddDisabledItem(new GUIContent("Remove link"), false);
                 }
@@ -92,19 +113,38 @@ public class SceneGraph : EditorWindow
 
                 menu.ShowAsContext();
             }
+            else
+            {
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("Add Story Node"), false, AddRectNode, Event.current.mousePosition);
+                menu.AddItem(new GUIContent("Add Choice Node"), false, AddDiamondNode, Event.current.mousePosition);
+                menu.ShowAsContext();
+            }
         }
-        if(Event.current.type == EventType.MouseDown && Event.current.button ==0) 
+        //left click
+        if(Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftControl)
+        {
+            controlPressed = true;
+        }
+        if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.LeftControl)
+        {
+            controlPressed = false;
+        }
+        if (Event.current.type == EventType.MouseDown && Event.current.button == 0) 
         {
             Event e = Event.current;
             bool clickedOnVoid = true;
             int index = CheckBlockCollision(e.mousePosition);
             if (index != -1)
             {
+                BlockDrawer bd = blockDrawers[index];
                 clickedOnVoid = false;
-                SelectBlock(index, e.mousePosition, blockDrawers[index].pos);
-                if(toLinkObjIndex != -1)
+                SelectBlock(index, e.mousePosition + currentWorldOrigin, bd.pos + currentWorldOrigin);
+                if(bdToLink != null)
                 {
-                    LinkBlocks(toLinkObjIndex, index);
+                    LinkBlocks(bdToLink, bd);
+                    bdToLink = null;
+                    toLinkObjIndex = -1;
                 }
                 Repaint();
             }
@@ -112,6 +152,10 @@ public class SceneGraph : EditorWindow
             {
                 highlightedObjIndex = -1;
                 toLinkObjIndex = -1;
+                if(controlPressed)
+                {
+                    clickStartPos = e.mousePosition + currentWorldOrigin;
+                }
                 Repaint();
             }
         }
@@ -120,6 +164,11 @@ public class SceneGraph : EditorWindow
             if(selectedObjIndex != -1)
             {
                 blockDrawers[selectedObjIndex].pos = selectObjPos + Event.current.mousePosition - selectMousePos;
+                Repaint();
+            }
+            if(controlPressed)
+            {
+                currentWorldOrigin = clickStartPos - Event.current.mousePosition;
                 Repaint();
             }
         }
@@ -134,11 +183,53 @@ public class SceneGraph : EditorWindow
         {
             if(highlightedObjIndex != -1)
             {
+                DeleteBlockLinks(highlightedObjIndex);
                 blockDrawers.RemoveAt(highlightedObjIndex);
                 highlightedObjIndex= -1;
                 Repaint();
             }
         }
+
+    }
+
+    void AddRectNode(object data)
+    {
+        Vector2? pos = data as Vector2?;
+
+        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, pos.Value);
+        blockDrawers.Add(bd);
+    }
+
+    void AddDiamondNode(object data)
+    {
+        Vector2? pos = data as Vector2?;
+
+        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Diamond, collection, pos.Value);
+        blockDrawers.Add(bd);
+    }
+
+    void DrawLink(BlockDrawer source, BlockDrawer destination)
+    {
+        Vector2 sourcePos = source.blockCentre.Invoke(source.pos, source.blockClass);
+        Vector2 destPos = destination.blockCentre.Invoke(destination.pos, destination.blockClass);
+        sourcePos += currentWorldOrigin;
+        destPos += currentWorldOrigin;
+
+        //draw the line
+        Handles.DrawLine(sourcePos, destPos);
+
+        //draw the little arrow centred on the middle of the line;
+
+        Vector2 centre = (sourcePos + destPos) / 2;
+        Vector2 dir = (centre - sourcePos).normalized;
+        Vector2 dirRot45 = (Quaternion.AngleAxis(45, Vector3.forward) * dir).normalized;
+        Vector2 dirRotm45 = (Quaternion.AngleAxis(-45, Vector3.forward) * dir).normalized;
+
+        Vector2 offsetCentre = centre - dirRot45 * 10;
+        Vector2 moffsetCentre = centre - dirRotm45 * 10;
+
+        Handles.DrawLine(centre, offsetCentre);
+        Handles.DrawLine(centre, moffsetCentre);
     }
 
     void LinkCallback(object userData)
@@ -146,16 +237,28 @@ public class SceneGraph : EditorWindow
         int? selectedIndex = userData as int?;
 
         toLinkObjIndex = selectedIndex.Value;
+        bdToLink = blockDrawers[selectedIndex.Value];
     }
+
     void UnlinkCallback(object userData)
     {
         int? selectedIndex = userData as int?;
-        blockDrawers[selectedIndex.Value].blockLink = -1;
+        blockDrawers[selectedIndex.Value].blockLink = null;
     }
     
-    void LinkBlocks(int firstPart, int lastPart)
+    void LinkBlocks(BlockDrawer source, BlockDrawer link)
     {
-        blockDrawers[firstPart].blockLink = lastPart;
+        source.blockLink = link;
+    }
+
+    void DeleteBlockLinks(int index)
+    {
+        blockDrawers[index].blockLink = null;
+        foreach(BlockDrawer bd in blockDrawers)
+        {
+            if (bd.blockLink == blockDrawers[index])
+                bd.blockLink = null;
+        }
     }
 
     int CheckBlockCollision(Vector2 mousePos)
@@ -164,7 +267,7 @@ public class SceneGraph : EditorWindow
         for(int i = blockDrawers.Count - 1; i >=0; i--)
         {
             BlockDrawer bd = blockDrawers[i];
-            if(bd.collisionCallback(mousePos, bd.pos, bd.blockClass))
+            if(bd.collisionCallback(mousePos, bd.pos + currentWorldOrigin, bd.blockClass))
             {
                 collisionIndex = i;
                 break;
@@ -196,10 +299,12 @@ public class SceneGraph : EditorWindow
         blockContents.Clear();
         foreach(var bd in blockDrawers)
         {
-            var bc = BlockFactory.CreateBlockContent(bd);
+            var bc = BlockFactory.CreateBlockContent(bd, blockDrawers);
             blockContents.Add(bc);
         }
-        BlockFactory.WriteToJSON(blockContents);
+        BlockFactory.WriteBlocksToJSON(blockContents);
+        BlockFactory.WriteWorldDataToJSON(new WorldData(
+            new SerializableVector2(currentWorldOrigin)));
     }
 
 }

@@ -16,6 +16,7 @@ public delegate void BlockDrawerCallback(Vector2 pos, BlockClass blockClass);
 public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass);
 public delegate void BlockLabelDrawCallback(Vector2 pos, string text, BlockClass blockClass);
 public delegate void BlockHighlightDrawCallback(Vector2 pos, BlockClass blockClass);
+public delegate Vector3 GetBlockCentre(Vector2 pos, BlockClass blockClass);
 
 [CreateAssetMenu(fileName = "BlockShape", menuName = "VN_Engine/Blocks/BlockShape")]
 public class BlockClass : ScriptableObject
@@ -31,11 +32,12 @@ public class BlockDrawer
     public BlockClass blockClass;
     public Vector2 pos;
     public string labelText;
-    public int blockLink = -1;
+    public BlockDrawer blockLink = null;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
     public BlockLabelDrawCallback labelDrawCallback;
     public BlockHighlightDrawCallback highlightDrawCallback;
+    public GetBlockCentre blockCentre;
 
 }
 
@@ -93,6 +95,11 @@ public class SerializableBlockClass
         };
         return bc;
     }
+
+    public static implicit operator SerializableBlockClass(BlockClass bc)
+    {
+        return new SerializableBlockClass(bc);
+    }
 }
 
 [Serializable]
@@ -103,6 +110,10 @@ public class SerializableBlockDrawer
     public string text;
     public int blockLink;
 
+    public SerializableBlockDrawer()
+    {
+
+    }
     [JsonConstructor]
     public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink)
     {
@@ -116,6 +127,7 @@ public class SerializableBlockDrawer
     {
         blockClass = new SerializableBlockClass(bd.blockClass);
         pos = new SerializableVector2(bd.pos);
+        blockLink = -1;
         text = bd.labelText;
     }
 
@@ -124,6 +136,9 @@ public class SerializableBlockDrawer
         return new SerializableBlockDrawer(bd);
     }
 }
+
+
+
 
 [Serializable]
 public class BlockContents
