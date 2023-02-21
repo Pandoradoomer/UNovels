@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
+using Unity.VisualScripting;
 
 public class SceneGraph : EditorWindow
 {
@@ -73,18 +74,14 @@ public class SceneGraph : EditorWindow
     private void DrawNonZoomArea()
     {
         GUILayout.BeginVertical();
-        GUILayout.Label("To Link: " + toLinkObjIndex);
-        GUILayout.Label($"Window dimensions: {position.width}x{position.height}");
-        GUILayout.Label($"Zoom area coords: Min: {_zoomArea.xMin}x{_zoomArea.yMin} Max: {_zoomArea.xMax}x{_zoomArea.yMax}");
-        GUILayout.Label($"Top Menu dimensions {TopMenuRect.width}x{TopMenuRect.height}");
-        GUILayout.Label("Current World Origin: " + currentWorldOrigin);
-        GUILayout.Label($"Current Mouse - Screen: {Event.current.mousePosition} - World:" +
-            $"{ConvertScreenCoordsToZoomCoords(Event.current.mousePosition)}");
-        GUILayout.Label($"First block - Screen: {ConvertZoomCoordsToScreenCoords(blockDrawers[0].pos + currentWorldOrigin) } - World: {ConvertScreenCoordsToZoomCoords(blockDrawers[0].pos + _zoomArea.TopLeft())}" );
         if (GUILayout.Button("Reset World Origin"))
         {
             currentWorldOrigin = Vector2.zero;
             _zoomCoordsOrigin = currentWorldOrigin;
+        }
+        if(GUILayout.Button("Save"))
+        {
+            Save();
         }
         GUILayout.Label("Zoom: " + _zoom);
         _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax);
@@ -115,7 +112,7 @@ public class SceneGraph : EditorWindow
         BlockFactory.CreateLinks(blockDrawers, blockContents);
         WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
         currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
-        //_zoomCoordsOrigin = currentWorldOrigin;
+        _zoom = worldData.currentZoomValue;
         _zoomArea = position;
         
     }
@@ -215,13 +212,12 @@ public class SceneGraph : EditorWindow
         {
             if(selectedObjIndex != -1)
             {
-                blockDrawers[selectedObjIndex].pos = selectObjPos + Event.current.mousePosition - selectMousePos;
+                blockDrawers[selectedObjIndex].pos = selectObjPos + ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
                 Repaint();
             }
             if(controlPressed)
             {
-                currentWorldOrigin = clickStartPos - Event.current.mousePosition;
-                //_zoomCoordsOrigin = currentWorldOrigin;
+                currentWorldOrigin =  clickStartPos - Event.current.mousePosition;
                 Repaint();
             }
         }
@@ -331,8 +327,10 @@ public class SceneGraph : EditorWindow
     }
     void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
     {
-        selectMousePos = mousePos;
+        selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
         selectObjPos = objPos;
+        //selectMousePos = ConvertZoomCoordsToScreenCoords(mousePos);
+        //selectObjPos = ConvertZoomCoordsToScreenCoords(objPos);
         //selecting an object has it be drawn on top;
         var block = blockDrawers[index];
         blockDrawers.RemoveAt(index);
@@ -348,17 +346,21 @@ public class SceneGraph : EditorWindow
         selectObjPos = Vector2.zero;
     }
 
-    private void OnDestroy()
+    private void Save()
     {
         blockContents.Clear();
-        foreach(var bd in blockDrawers)
+        foreach (var bd in blockDrawers)
         {
             var bc = BlockFactory.CreateBlockContent(bd, blockDrawers);
             blockContents.Add(bc);
         }
         BlockFactory.WriteBlocksToJSON(blockContents);
         BlockFactory.WriteWorldDataToJSON(new WorldData(
-            new SerializableVector2(currentWorldOrigin)));
+            new SerializableVector2(currentWorldOrigin), _zoom));
+    }
+    private void OnDestroy()
+    {
+        Save();
     }
 
 }
