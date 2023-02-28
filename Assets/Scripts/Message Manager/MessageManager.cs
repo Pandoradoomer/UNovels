@@ -22,6 +22,7 @@ public class MessageManager : MonoBehaviour
 
     public float speed = 10.0f;
     private float baseSpeed = 10.0f;
+    public bool isPlaying = false;
 
     void Start()
     {
@@ -33,31 +34,38 @@ public class MessageManager : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.E))
         {
-            actualText = string.Empty;
-            StartCoroutine(SendMessage("This is a test message, wahoo! This is <b>bold text</b>! This is <i>italic text</i>! " +
-                "<speed=30>This is fast written text!</speed> This is now normally written text again!", "Greg"));
+            if(isPlaying == false)
+            {
+                //actualText = string.Empty;
+                StartCoroutine(SendMessage("This is a test message, wahoo! This is <b>bold text</b>! This is <i>italic text</i>! " +
+                    "<speed=30>This is fast written text!</speed> This is now normally written text again!", "Greg", TransitionTypes.FADE));
+            }
+            else
+            {
+                isPlaying = false;
+            }
         }
     }
 
-    public IEnumerator SendMessage(string text, string characterName)
+    public IEnumerator SendMessage(string text, string characterName, TransitionTypes charTransition = TransitionTypes.NONE, float charTransParam = 1.0f)
     {
-        yield return StartCoroutine(SendMessage(text, null, characterName));
+        yield return StartCoroutine(SendMessage(text, null, characterName, charTransition, charTransParam));
     }
     public IEnumerator SendMessage(string text, Sprite characterSprite, string characterName,
-        TransitionTypes characterTransition = TransitionTypes.NONE )
+        TransitionTypes characterTransition = TransitionTypes.NONE, float charTransParam = 1.0f)
     {
+        isPlaying = true;
         if(characterSprite != null)
             characterImage.sprite = characterSprite;
         characterNameTextUGUI.text = characterName;
 
         //The character transition typically happens before anything else appears
-        StartCoroutine(DoImageTransition(characterImage, characterTransition));
+        yield return StartCoroutine(DoImageTransition(characterTransition, charTransParam));
 
-        dialogueTextPanel.SetActive(true);
         characterNameTextUGUI.gameObject.SetActive(true);
+        dialogueTextPanel.SetActive(true);
         dialogueTextUGUI.text = string.Empty;
         dialogueTextUGUI.gameObject.SetActive(true);
-        characterImage.gameObject.SetActive(true);
 
         string invisTag = @"<alpha=#00>";
 
@@ -67,10 +75,13 @@ public class MessageManager : MonoBehaviour
             ParseTag(ref i, ref text);
             string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
             dialogueTextUGUI.text = splicedText;
-            yield return new WaitForSeconds(1.0f/speed);
-            yield return StartCoroutine(WaitForPunctuation(text[i]));
+            if(isPlaying == true)
+            {
+                yield return new WaitForSeconds(1.0f / speed);
+                yield return StartCoroutine(WaitForPunctuation(text[i]));
+            }
         }
-
+        isPlaying = false;
         yield return null;
     }
 
@@ -153,13 +164,27 @@ public class MessageManager : MonoBehaviour
 
     #region Transition Functions
 
-    IEnumerator DoImageTransition(Image img, TransitionTypes transType)
+    IEnumerator DoImageTransition(TransitionTypes transType, float param)
     {
-        switch(transType)
+        characterImage.gameObject.SetActive(true);
+        switch (transType)
         {
-
+            case TransitionTypes.FADE:
+                yield return StartCoroutine(Fade(param));
+                break;
         }
         yield return null;
+    }
+
+    IEnumerator Fade(float param)
+    {
+        Color c = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+        for(float i = 0.0f; i <= param; i+= Time.deltaTime)
+        {
+            c.a = Mathf.Lerp(0.0f, 1.0f, i / param);
+            characterImage.color = c;
+            yield return null;
+        }
     }
     #endregion
 }
