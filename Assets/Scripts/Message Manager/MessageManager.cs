@@ -59,13 +59,14 @@ public class MessageManager : MonoBehaviour
         dialogueTextUGUI.gameObject.SetActive(true);
         characterImage.gameObject.SetActive(true);
 
+        string invisTag = @"<alpha=#00>";
+
+        dialogueTextUGUI.text = text;
         for(int i = 0; i < text.Length; i++)
         {
-            ParseTag(ref i, text);
-            if (i >= text.Length)
-                break;
-            actualText += text[i];
-            dialogueTextUGUI.text = actualText;
+            ParseTag(ref i, ref text);
+            string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
+            dialogueTextUGUI.text = splicedText;
             yield return new WaitForSeconds(1.0f/speed);
             yield return StartCoroutine(WaitForPunctuation(text[i]));
         }
@@ -97,7 +98,7 @@ public class MessageManager : MonoBehaviour
         }
     }
 
-    void ParseTag(ref int index, string text)
+    void ParseTag(ref int index, ref string text)
     {
         if (text[index] == '<')
         {
@@ -112,7 +113,9 @@ public class MessageManager : MonoBehaviour
             //
             if(bareTag.Contains("speed"))
             {
-                if(bareTag.Contains("/"))
+                index -= closingIndex + 1;
+                text = text.Remove(index, closingIndex + 1);
+                if (bareTag.Contains("/"))
                 {
                     speed = baseSpeed;
                     return;
@@ -140,7 +143,7 @@ public class MessageManager : MonoBehaviour
                 {
                     return;
                 }
-                
+
             }
             actualText += fullTag;
 
