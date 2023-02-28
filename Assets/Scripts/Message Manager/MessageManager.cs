@@ -39,15 +39,19 @@ public class MessageManager : MonoBehaviour
         }
     }
 
-    public new IEnumerator SendMessage(string text, string characterName)
+    public IEnumerator SendMessage(string text, string characterName)
     {
         yield return StartCoroutine(SendMessage(text, null, characterName));
     }
-    public IEnumerator SendMessage(string text, Sprite characterSprite, string characterName)
+    public IEnumerator SendMessage(string text, Sprite characterSprite, string characterName,
+        TransitionTypes characterTransition = TransitionTypes.NONE )
     {
         if(characterSprite != null)
-        characterImage.sprite = characterSprite;
+            characterImage.sprite = characterSprite;
         characterNameTextUGUI.text = characterName;
+
+        //The character transition typically happens before anything else appears
+        StartCoroutine(DoImageTransition(characterImage, characterTransition));
 
         dialogueTextPanel.SetActive(true);
         characterNameTextUGUI.gameObject.SetActive(true);
@@ -69,6 +73,7 @@ public class MessageManager : MonoBehaviour
         yield return null;
     }
 
+    #region Text Parsing Functions
     IEnumerator WaitForPunctuation(char letter)
     {
         switch(letter)
@@ -141,4 +146,17 @@ public class MessageManager : MonoBehaviour
 
         }
     }
+    #endregion
+
+    #region Transition Functions
+
+    IEnumerator DoImageTransition(Image img, TransitionTypes transType)
+    {
+        switch(transType)
+        {
+
+        }
+        yield return null;
+    }
+    #endregion
 }
