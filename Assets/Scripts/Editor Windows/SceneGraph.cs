@@ -22,6 +22,48 @@ public class SceneGraph : EditorWindow
     BlockClassCollection collection;
     List<BlockDrawer> blockDrawers;
     List<BlockContents> blockContents;
+
+
+    int selectedObjIndex = -1;
+    int highlightedObjIndex = -1;
+    int toLinkObjIndex = -1;
+    BlockDrawer bdToLink = null;
+    Vector2 selectMousePos = Vector2.zero;
+    Vector2 selectObjPos = Vector2.zero;
+
+    Vector2 currentWorldOrigin = Vector2.zero;
+    Vector2 clickStartPos = Vector2.zero;
+
+    bool controlPressed = false;
+    private void OnEnable()
+    {
+        blockContents = BlockFactory.MakeBlockContentsFromJSON();
+        blockDrawers = new List<BlockDrawer>();
+        foreach (var bc in blockContents)
+        {
+            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
+        }
+
+        BlockFactory.CreateLinks(blockDrawers, blockContents);
+        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
+        _zoom = worldData.currentZoomValue;
+        _zoomArea = position;
+
+    }
+
+    public void FirstTimeInit()
+    {
+        blockContents = new List<BlockContents>();
+        blockDrawers = new List<BlockDrawer>();
+        AddRectNode(new Vector2(300.0f, 300.0f));
+        currentWorldOrigin = Vector2.zero;
+        _zoom = 1.0f;
+        Save();
+
+    }
+    #endregion
+
     #region Zoom functions
 
     private const float kZoomMin = 0.1f;
@@ -111,37 +153,8 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-    private void OnEnable()
-    {
-        //blockDrawers = new List<BlockDrawer>();
-        blockContents = BlockFactory.MakeBlockContentsFromJSON();
-        blockDrawers = new List<BlockDrawer>();
-        foreach(var bc in blockContents)
-        {
-            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
-        }
 
-        BlockFactory.CreateLinks(blockDrawers, blockContents);
-        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
-        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
-        _zoom = worldData.currentZoomValue;
-        _zoomArea = position;
-        
-    }
 
-    #endregion
-
-    int selectedObjIndex = -1;
-    int highlightedObjIndex = -1;
-    int toLinkObjIndex = -1;
-    BlockDrawer bdToLink = null;
-    Vector2 selectMousePos = Vector2.zero;
-    Vector2 selectObjPos = Vector2.zero;
-
-    Vector2 currentWorldOrigin = Vector2.zero;
-    Vector2 clickStartPos = Vector2.zero;
-
-    bool controlPressed = false;
 
 
     
@@ -374,6 +387,11 @@ public class SceneGraph : EditorWindow
     private void OnDestroy()
     {
         Save();
+    }
+
+    public void HardReset()
+    {
+        BlockFactory.HardReset();
     }
 
 }

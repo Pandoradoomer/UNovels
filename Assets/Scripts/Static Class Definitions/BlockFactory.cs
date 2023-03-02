@@ -341,4 +341,10 @@ public class BlockFactory
         File.WriteAllText(Application.dataPath + "/Stored Data/worldData.json", outputString);
     }
 
+    public static void HardReset()
+    {
+        File.Delete(Application.dataPath + "/Stored Data/worldData.json");
+        File.Delete(Application.dataPath + "/Stored Data/blockData.json");
+    }
+
 }
