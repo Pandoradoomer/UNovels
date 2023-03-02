@@ -20,8 +20,6 @@ public class SceneGraph : EditorWindow
 
     [SerializeField]
     BlockClassCollection collection;
-    //for now, until a better solution is found, let's keep both lists ordered by the same index
-    //i.e. blockDrawers[2] will draw info from blockContents[2];
     List<BlockDrawer> blockDrawers;
     List<BlockContents> blockContents;
     #region Zoom functions
@@ -74,7 +72,11 @@ public class SceneGraph : EditorWindow
                     bd.highlightDrawCallback(bd.pos + currentWorldOrigin, bd.blockClass);
             }
             bd.callback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
-            bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, bd.blockClass);
+            bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, Color.black, bd.blockClass);
+            if(bd.isStart)
+            {
+                bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin - Vector2.up * bd.blockClass.size.y, "Start Node", Color.white, bd.blockClass);
+            }
 
         }
 
@@ -222,7 +224,8 @@ public class SceneGraph : EditorWindow
         {
             if(selectedObjIndex != -1)
             {
-                blockDrawers[selectedObjIndex].pos = selectObjPos + ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
+                Vector2 offset = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
+                blockDrawers[selectedObjIndex].pos = selectObjPos + offset;
                 Repaint();
             }
             if(controlPressed)
@@ -254,16 +257,16 @@ public class SceneGraph : EditorWindow
     void AddRectNode(object data)
     {
         Vector2? pos = data as Vector2?;
-
-        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, pos.Value);
+        bool isStart = blockDrawers.Count == 0;
+        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, pos.Value, isStart);
         blockDrawers.Add(bd);
     }
 
     void AddDiamondNode(object data)
     {
         Vector2? pos = data as Vector2?;
-
-        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Diamond, collection, pos.Value);
+        bool isStart = blockDrawers.Count == 0;
+        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Diamond, collection, pos.Value, isStart);
         blockDrawers.Add(bd);
     }
 
@@ -341,7 +344,7 @@ public class SceneGraph : EditorWindow
     void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
     {
         selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
-        selectObjPos = objPos;
+        selectObjPos = objPos + currentWorldOrigin;
         var block = blockDrawers[index];
         blockDrawers.RemoveAt(index);
         blockDrawers.Add(block);

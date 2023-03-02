@@ -7,22 +7,22 @@ using UnityEngine;
 
 public class BlockFactory 
 {
-    public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection, Vector2 pos)
+    public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection, Vector2 pos, bool isStart)
     {
         BlockDrawer bd = new BlockDrawer();
         switch(type)
         {
             case BlockShape.Rect:
-                bd = CreateRectDrawer(collection, pos);
+                bd = CreateRectDrawer(collection, pos, isStart);
                 break;
             case BlockShape.Diamond:
-                bd = CreateDiamondDrawer(collection, pos);
+                bd = CreateDiamondDrawer(collection, pos, isStart);
                 break;
         }
         return bd;
     }
     #region Block Drawer Factory Functions
-    private static BlockDrawer CreateRectDrawer(BlockClassCollection collection, Vector2 pos)
+    private static BlockDrawer CreateRectDrawer(BlockClassCollection collection, Vector2 pos, bool isStart)
     {
         BlockClass bc = collection.blocks["Rect"];
         BlockDrawer bd = new BlockDrawer()
@@ -30,6 +30,7 @@ public class BlockFactory
             blockClass = bc,
             pos = pos,
             labelText = bc.defaultLabelText,
+            isStart = isStart,
             callback = DrawRectBlock,
             collisionCallback = CollideWithRect,
             highlightDrawCallback = DrawHighlightRectBlock,
@@ -39,7 +40,7 @@ public class BlockFactory
         return bd;
     }
 
-    private static BlockDrawer CreateDiamondDrawer(BlockClassCollection collection, Vector2 pos)
+    private static BlockDrawer CreateDiamondDrawer(BlockClassCollection collection, Vector2 pos, bool isStart)
     {
         BlockClass bc = collection.blocks["Diamond"];
         BlockDrawer bd = new BlockDrawer()
@@ -47,6 +48,7 @@ public class BlockFactory
             blockClass = bc,
             pos = pos,
             labelText = bc.defaultLabelText,
+            isStart = isStart,
             callback = DrawDiamondBlock,
             collisionCallback = CollideWithDiamond,
             highlightDrawCallback = DrawHighlightDiamondBlock,
@@ -160,11 +162,11 @@ public class BlockFactory
         Handles.DrawAAConvexPolygon(points);
     }
 
-    static void DrawLabelRect(Vector2 pos, string text, BlockClass blockClass)
+    static void DrawLabelRect(Vector2 pos, string text, Color c, BlockClass blockClass)
     {
         GUIStyle labelStyle = new GUIStyle()
         {
-            normal = new GUIStyleState() { textColor = Color.black },
+            normal = new GUIStyleState() { textColor = c },
             fontSize = 12,
             alignment = TextAnchor.MiddleCenter,
             clipping = TextClipping.Clip,
@@ -175,11 +177,11 @@ public class BlockFactory
         Handles.Label(pos + offset, text, labelStyle);
     }
 
-    static void DrawLabelDiamond(Vector2 pos, string text, BlockClass blockClass)
+    static void DrawLabelDiamond(Vector2 pos, string text, Color c, BlockClass blockClass)
     {
         GUIStyle labelStyle = new GUIStyle()
         {
-            normal = new GUIStyleState() { textColor = Color.black },
+            normal = new GUIStyleState() { textColor = c },
             fontSize = 12,
             alignment = TextAnchor.MiddleCenter,
             clipping = TextClipping.Clip,
@@ -267,6 +269,7 @@ public class BlockFactory
         {
             blockClass = bd.blockClass,
             pos = new SerializableVector2(bd.pos),
+            isStart = bd.isStart,
             text = bd.labelText,
             blockLink = bd.blockLink == null ? -1 : blockDrawers.IndexOf(bd.blockLink)
 
@@ -292,6 +295,7 @@ public class BlockFactory
             pos = bc.drawer.pos.Vector2(),
             blockLink = null,
             labelText = bc.drawer.text,
+            isStart = bc.drawer.isStart,
             callback = bdc,
             collisionCallback = bcc,
             highlightDrawCallback  = bhdc,

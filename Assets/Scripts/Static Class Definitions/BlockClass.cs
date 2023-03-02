@@ -14,7 +14,7 @@ public enum BlockShape
 
 public delegate void BlockDrawerCallback(Vector2 pos, BlockClass blockClass);
 public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass, float scale);
-public delegate void BlockLabelDrawCallback(Vector2 pos, string text, BlockClass blockClass);
+public delegate void BlockLabelDrawCallback(Vector2 pos, string text, Color c, BlockClass blockClass);
 public delegate void BlockHighlightDrawCallback(Vector2 pos, BlockClass blockClass);
 public delegate Vector3 GetBlockCentre(Vector2 pos, BlockClass blockClass);
 
@@ -32,6 +32,7 @@ public class BlockDrawer
     public BlockClass blockClass;
     public Vector2 pos;
     public string labelText;
+    public bool isStart;
     public BlockDrawer blockLink = null;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
@@ -107,6 +108,7 @@ public class SerializableBlockDrawer
 {
     public SerializableBlockClass blockClass;
     public SerializableVector2 pos;
+    public bool isStart;
     public string text;
     public int blockLink;
 
@@ -115,12 +117,13 @@ public class SerializableBlockDrawer
 
     }
     [JsonConstructor]
-    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink)
+    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink, bool isStart)
     {
         this.blockClass = blockClass;
         this.pos = pos;
         this.text = text;
         this.blockLink = blockLink;
+        this.isStart = isStart;
     }
 
     public SerializableBlockDrawer(BlockDrawer bd)
@@ -129,6 +132,7 @@ public class SerializableBlockDrawer
         pos = new SerializableVector2(bd.pos);
         blockLink = -1;
         text = bd.labelText;
+        isStart = bd.isStart;
     }
 
     public static implicit operator SerializableBlockDrawer(BlockDrawer bd)
