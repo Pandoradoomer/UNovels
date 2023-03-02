@@ -11,7 +11,7 @@ public class SceneGraph : EditorWindow
 {
 
     #region Init Functions
-    [MenuItem("VN_Engine/Scene Graph")]
+    //[MenuItem("VN_Engine/Scene Graph")]
     static void ShowEditor()
     {
         SceneGraph sceneGraph = EditorWindow.GetWindow<SceneGraph>();
