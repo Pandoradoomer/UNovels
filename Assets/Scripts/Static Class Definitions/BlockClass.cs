@@ -13,7 +13,7 @@ public enum BlockShape
 }
 
 public delegate void BlockDrawerCallback(Vector2 pos, BlockClass blockClass);
-public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass);
+public delegate bool BlockCollisionCallback(Vector2 mousePos, Vector2 objPos, BlockClass blockClass, float scale);
 public delegate void BlockLabelDrawCallback(Vector2 pos, string text, BlockClass blockClass);
 public delegate void BlockHighlightDrawCallback(Vector2 pos, BlockClass blockClass);
 public delegate Vector3 GetBlockCentre(Vector2 pos, BlockClass blockClass);

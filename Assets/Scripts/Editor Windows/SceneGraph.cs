@@ -317,7 +317,7 @@ public class SceneGraph : EditorWindow
         {
             BlockDrawer bd = blockDrawers[i];
             var screenPos = ConvertZoomCoordsToScreenCoords(bd.pos + currentWorldOrigin);
-            if(bd.collisionCallback(mousePos, screenPos, bd.blockClass))
+            if(bd.collisionCallback(mousePos, screenPos, bd.blockClass, _zoom))
             {
                 collisionIndex = i;
                 break;
@@ -329,9 +329,6 @@ public class SceneGraph : EditorWindow
     {
         selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
         selectObjPos = objPos;
-        //selectMousePos = ConvertZoomCoordsToScreenCoords(mousePos);
-        //selectObjPos = ConvertZoomCoordsToScreenCoords(objPos);
-        //selecting an object has it be drawn on top;
         var block = blockDrawers[index];
         blockDrawers.RemoveAt(index);
         blockDrawers.Add(block);

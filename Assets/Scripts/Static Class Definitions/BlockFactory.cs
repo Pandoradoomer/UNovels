@@ -59,17 +59,17 @@ public class BlockFactory
     #endregion
 
     #region Collider functions
-    static bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, BlockClass bc)
+    static bool CollideWithRect(Vector2 pos, Vector2 rectTopleft, BlockClass bc, float scale)
     {
         //pos is mouse position
         //rectTopLeft is top left of the rect, because that's how Handles draws it
-        if (pos.x > rectTopleft.x && pos.x < rectTopleft.x + bc.size.x &&
-           pos.y > rectTopleft.y && pos.y < rectTopleft.y + bc.size.y)
+        if (pos.x > rectTopleft.x && pos.x < rectTopleft.x + bc.size.x * scale &&
+           pos.y > rectTopleft.y && pos.y < rectTopleft.y + bc.size.y * scale)
             return true;
         return false;
     }
 
-    static bool CollideWithDiamond(Vector2 pos, Vector2 diaPos, BlockClass bc)
+    static bool CollideWithDiamond(Vector2 pos, Vector2 diaPos, BlockClass bc, float scale)
     {
         /*
         //pos is mouse position
