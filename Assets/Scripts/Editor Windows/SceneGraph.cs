@@ -203,7 +203,7 @@ public class SceneGraph : EditorWindow
                 toLinkObjIndex = -1;
                 if(controlPressed)
                 {
-                    clickStartPos = e.mousePosition + currentWorldOrigin;
+                    clickStartPos = e.mousePosition - currentWorldOrigin;
                 }
                 Repaint();
             }
@@ -217,7 +217,7 @@ public class SceneGraph : EditorWindow
             }
             if(controlPressed)
             {
-                currentWorldOrigin =  clickStartPos - Event.current.mousePosition;
+                currentWorldOrigin = -(clickStartPos - Event.current.mousePosition);
                 Repaint();
             }
         }
