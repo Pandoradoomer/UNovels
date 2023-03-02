@@ -48,6 +48,15 @@ public class SceneGraph : EditorWindow
         // Within the zoom area all coordinates are relative to the top left corner of the zoom area
         // with the width and height being scaled versions of the original/unzoomed area's width and height.
         EditorZoomArea.Begin(_zoom, _zoomArea);
+
+        if (toLinkObjIndex != -1)
+        {
+            Vector2 centre = bdToLink.blockCentre.Invoke(bdToLink.pos, bdToLink.blockClass);
+            Color c = Handles.color;
+            Handles.color = Color.white;
+            DrawArrow(centre + currentWorldOrigin, Event.current.mousePosition);
+            Handles.color = c;
+        }
         foreach (var bd in blockDrawers)
         {
             if (bd.blockLink != null)
@@ -68,6 +77,7 @@ public class SceneGraph : EditorWindow
             bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, bd.blockClass);
 
         }
+
         EditorZoomArea.End();
     }
 
@@ -257,14 +267,8 @@ public class SceneGraph : EditorWindow
         blockDrawers.Add(bd);
     }
 
-    void DrawLink(BlockDrawer source, BlockDrawer destination)
+    void DrawArrow(Vector2 sourcePos, Vector2 destPos)
     {
-        Vector2 sourcePos = source.blockCentre.Invoke(source.pos, source.blockClass);
-        Vector2 destPos = destination.blockCentre.Invoke(destination.pos, destination.blockClass);
-        sourcePos += currentWorldOrigin;
-        destPos += currentWorldOrigin;
-
-        //draw the line
         Handles.DrawLine(sourcePos, destPos);
 
         //draw the little arrow centred on the middle of the line;
@@ -279,6 +283,15 @@ public class SceneGraph : EditorWindow
 
         Handles.DrawLine(centre, offsetCentre);
         Handles.DrawLine(centre, moffsetCentre);
+    }
+    void DrawLink(BlockDrawer source, BlockDrawer destination)
+    {
+        Vector2 sourcePos = source.blockCentre.Invoke(source.pos, source.blockClass);
+        Vector2 destPos = destination.blockCentre.Invoke(destination.pos, destination.blockClass);
+        sourcePos += currentWorldOrigin;
+        destPos += currentWorldOrigin;
+
+        DrawArrow(sourcePos, destPos);
     }
 
     void LinkCallback(object userData)
