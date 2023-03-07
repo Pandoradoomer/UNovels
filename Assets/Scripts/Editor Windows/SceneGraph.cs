@@ -153,12 +153,6 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-
-
-
-
-    
-
     private void OnGUI()
     {
         DrawZoomArea();
@@ -175,6 +169,10 @@ public class SceneGraph : EditorWindow
                 highlightedObjIndex = index;
                 Repaint();
                 GenericMenu menu = new GenericMenu();
+                if (blockDrawers[highlightedObjIndex].isStart)
+                    menu.AddDisabledItem(new GUIContent("Delete Block"));
+                else
+                    menu.AddItem(new GUIContent("Delete Block"), false, DeleteBlock);
                 menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
                 if (blockDrawers[index].blockLink == null)
                 {
@@ -258,15 +256,24 @@ public class SceneGraph : EditorWindow
         {
             if(highlightedObjIndex != -1)
             {
-                DeleteBlockLinks(highlightedObjIndex);
-                blockDrawers.RemoveAt(highlightedObjIndex);
-                highlightedObjIndex= -1;
-                Repaint();
+                //DeleteBlockLinks(highlightedObjIndex);
+                //blockDrawers.RemoveAt(highlightedObjIndex);
+                //highlightedObjIndex= -1;
+                //Repaint();
             }
         }
 
     }
 
+    void DeleteBlock()
+    {
+        if (blockDrawers.Count == 1)
+            return;
+        DeleteBlockLinks(highlightedObjIndex);
+        blockDrawers.RemoveAt(highlightedObjIndex);
+        highlightedObjIndex = -1;
+        Repaint();
+    }
     void AddRectNode(object data)
     {
         Vector2? pos = data as Vector2?;
