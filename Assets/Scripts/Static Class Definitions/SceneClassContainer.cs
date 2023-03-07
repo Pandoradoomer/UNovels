@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class SceneClassContainer : MonoBehaviour
 {
     public bool wasInit = false;
@@ -22,12 +23,13 @@ public class SceneClassContainer : MonoBehaviour
     {
         wasInit = true;
         sceneGraph.FirstTimeInit();
+        sceneGraph.classContainer = this;
     }
 
-    [ExecuteInEditMode]
+    //[ExecuteInEditMode]
     private void OnDestroy()
     {
-
+        BlockFactory.HardReset();
     }
 }
 

@@ -33,6 +33,7 @@ public class BlockDrawer
     public Vector2 pos;
     public string labelText;
     public bool isStart;
+    public Guid blockScriptableGuid;
     public BlockDrawer blockLink = null;
     public BlockDrawerCallback callback;
     public BlockCollisionCallback collisionCallback;
@@ -108,6 +109,7 @@ public class SerializableBlockDrawer
 {
     public SerializableBlockClass blockClass;
     public SerializableVector2 pos;
+    public Guid blockScriptableGuid;
     public bool isStart;
     public string text;
     public int blockLink;
@@ -117,13 +119,14 @@ public class SerializableBlockDrawer
 
     }
     [JsonConstructor]
-    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink, bool isStart)
+    public SerializableBlockDrawer(SerializableBlockClass blockClass, SerializableVector2 pos, string text, int blockLink, bool isStart, Guid blockScriptableGuid)
     {
         this.blockClass = blockClass;
         this.pos = pos;
         this.text = text;
         this.blockLink = blockLink;
         this.isStart = isStart;
+        this.blockScriptableGuid = blockScriptableGuid;
     }
 
     public SerializableBlockDrawer(BlockDrawer bd)
@@ -133,6 +136,7 @@ public class SerializableBlockDrawer
         blockLink = -1;
         text = bd.labelText;
         isStart = bd.isStart;
+        blockScriptableGuid = bd.blockScriptableGuid;
     }
 
     public static implicit operator SerializableBlockDrawer(BlockDrawer bd)

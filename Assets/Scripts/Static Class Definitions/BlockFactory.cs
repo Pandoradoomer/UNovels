@@ -2,11 +2,14 @@ using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.IsolatedStorage;
 using UnityEditor;
 using UnityEngine;
 
 public class BlockFactory 
 {
+    static string ObjectPath = "Assets/Scriptable Objects/SceneEditor/Objects";
+    static List<SceneEditor> sceneEditors = new List<SceneEditor>();
     public static BlockDrawer CreateBlockDrawer(BlockShape type, BlockClassCollection collection, Vector2 pos, bool isStart)
     {
         BlockDrawer bd = new BlockDrawer();
@@ -271,6 +274,7 @@ public class BlockFactory
             pos = new SerializableVector2(bd.pos),
             isStart = bd.isStart,
             text = bd.labelText,
+            blockScriptableGuid = bd.blockScriptableGuid,
             blockLink = bd.blockLink == null ? -1 : blockDrawers.IndexOf(bd.blockLink)
 
         };
@@ -289,12 +293,14 @@ public class BlockFactory
         BlockHighlightDrawCallback bhdc = GetBlockDrawerHighlightCallback(bc);
         BlockLabelDrawCallback bldc = GetBlockLabelDrawCallback(bc);
         GetBlockCentre bct = GetBlockCentre(bc);
+        SceneEditor se = sceneEditors.Find(x => x.guid == bc.drawer.blockScriptableGuid);
         BlockDrawer bc2 = new BlockDrawer()
         {
             blockClass = bc.drawer.blockClass.BlockClass(),
             pos = bc.drawer.pos.Vector2(),
             blockLink = null,
-            labelText = bc.drawer.text,
+            labelText = se.SceneName,
+            blockScriptableGuid = bc.drawer.blockScriptableGuid,
             isStart = bc.drawer.isStart,
             callback = bdc,
             collisionCallback = bcc,
@@ -317,12 +323,16 @@ public class BlockFactory
 
     public static List<BlockContents> MakeBlockContentsFromJSON()
     {
+        if (!File.Exists(Application.dataPath + "/Stored Data/blockData.json"))
+            return null;
         var data = File.ReadAllText(Application.dataPath + "/Stored Data/blockData.json");
         List<BlockContents> blockContents = JsonConvert.DeserializeObject<List<BlockContents>>(data);
         return blockContents;
     }
     public static WorldData MakeWorldDataFromJSON()
     {
+        if (!File.Exists(Application.dataPath + "/Stored Data/worldData.json"))
+            return null;
         var data = File.ReadAllText(Application.dataPath + "/Stored Data/worldData.json");
         WorldData worldData = JsonConvert.DeserializeObject<WorldData>(data);
         return worldData;
@@ -332,6 +342,7 @@ public class BlockFactory
     {
         var outputString = JsonConvert.SerializeObject(blockContents);
         File.WriteAllText(Application.dataPath + "/Stored Data/blockData.json", outputString);
+        AssetDatabase.Refresh();
 
     }
 
@@ -339,12 +350,56 @@ public class BlockFactory
     {
         var outputString = JsonConvert.SerializeObject(data);
         File.WriteAllText(Application.dataPath + "/Stored Data/worldData.json", outputString);
+        AssetDatabase.Refresh();
     }
 
     public static void HardReset()
     {
         File.Delete(Application.dataPath + "/Stored Data/worldData.json");
         File.Delete(Application.dataPath + "/Stored Data/blockData.json");
+        for(int i = 0; i < sceneEditors.Count; i++)
+        {
+            SceneEditor se = sceneEditors[i];
+            bool hasDeleted1 = AssetDatabase.DeleteAsset(se.path.Remove(se.path.LastIndexOf("/") + 1));
+        }
+        sceneEditors.Clear();
+        AssetDatabase.Refresh();
+    }
+
+    public static void CreateBlockAsset(BlockDrawer bd, bool isStart)
+    {
+        SceneEditor newSceneNode = ScriptableObject.CreateInstance<SceneEditor>();
+        newSceneNode.SetGuid();
+        bd.blockScriptableGuid = newSceneNode.guid;
+        newSceneNode.isStart = isStart;
+        string path = ObjectPath + "/" + newSceneNode.guid.ToString() + "/" + newSceneNode.SceneName + ".asset";
+        newSceneNode.SetPath(path);
+        sceneEditors.Add(newSceneNode);
+        AssetDatabase.CreateFolder(ObjectPath, newSceneNode.guid.ToString());
+        AssetDatabase.CreateAsset(newSceneNode, path);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+    }
+
+    public static SceneEditor GetBlockAsset(BlockDrawer bd)
+    {
+        return sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+    }
+
+    public static void OpenBlockAsset(BlockDrawer bd)
+    {
+        SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
+        EditorWindow window = EditorWindow.GetWindow(windowType);
+        AssetDatabase.OpenAsset(se.GetInstanceID());
+    }
+
+    public static void DeleteBlockAsset(BlockDrawer bd)
+    {
+        SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        string path = se.path;
+        AssetDatabase.DeleteAsset(se.path);
     }
 
 }

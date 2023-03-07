@@ -9,9 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 014b8d6936049164e82e450a5f1fd9c9, type: 3}
-  m_Name: Rect
+  m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
+  m_Name: New Scene
   m_EditorClassIdentifier: 
-  defaultLabelText: New Scene
-  blockShape: 0
-  size: {x: 100, y: 40}
+  _guid: a890b505-da28-486e-ad28-4e068ee59efc
+  SceneName: New Scene
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/a890b505-da28-486e-ad28-4e068ee59efc/New
+    Scene.asset
+  isStart: 0

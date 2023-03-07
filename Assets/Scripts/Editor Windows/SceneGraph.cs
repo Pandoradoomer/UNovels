@@ -6,12 +6,13 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 using Unity.VisualScripting;
+using System.Linq;
 
 public class SceneGraph : EditorWindow
 {
 
     #region Init Functions
-    //[MenuItem("VN_Engine/Scene Graph")]
+    public SceneClassContainer classContainer;
     static void ShowEditor()
     {
         SceneGraph sceneGraph = EditorWindow.GetWindow<SceneGraph>();
@@ -38,6 +39,9 @@ public class SceneGraph : EditorWindow
     private void OnEnable()
     {
         blockContents = BlockFactory.MakeBlockContentsFromJSON();
+        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        if (blockContents == null || worldData == null)
+            return;
         blockDrawers = new List<BlockDrawer>();
         foreach (var bc in blockContents)
         {
@@ -45,11 +49,9 @@ public class SceneGraph : EditorWindow
         }
 
         BlockFactory.CreateLinks(blockDrawers, blockContents);
-        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
         currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
         _zoom = worldData.currentZoomValue;
         _zoomArea = position;
-
     }
 
     public void FirstTimeInit()
@@ -59,6 +61,7 @@ public class SceneGraph : EditorWindow
         AddRectNode(new Vector2(300.0f, 300.0f));
         currentWorldOrigin = Vector2.zero;
         _zoom = 1.0f;
+        _zoomArea = position;
         Save();
 
     }
@@ -88,7 +91,7 @@ public class SceneGraph : EditorWindow
         // Within the zoom area all coordinates are relative to the top left corner of the zoom area
         // with the width and height being scaled versions of the original/unzoomed area's width and height.
         EditorZoomArea.Begin(_zoom, _zoomArea);
-
+        UpdateBlockDrawers();
         if (toLinkObjIndex != -1)
         {
             Vector2 centre = bdToLink.blockCentre.Invoke(bdToLink.pos, bdToLink.blockClass);
@@ -174,6 +177,7 @@ public class SceneGraph : EditorWindow
                 else
                     menu.AddItem(new GUIContent("Delete Block"), false, DeleteBlock);
                 menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
+                menu.AddItem(new GUIContent("Edit Block"), false, EditCallback, index);
                 if (blockDrawers[index].blockLink == null)
                 {
                     menu.AddDisabledItem(new GUIContent("Remove link"), false);
@@ -265,6 +269,12 @@ public class SceneGraph : EditorWindow
 
     }
 
+    void EditCallback(object data)
+    {
+        int? index = data as int?;
+        BlockFactory.OpenBlockAsset(blockDrawers[index.Value]);
+    }
+
     void DeleteBlock()
     {
         if (blockDrawers.Count == 1)
@@ -280,6 +290,7 @@ public class SceneGraph : EditorWindow
         bool isStart = blockDrawers.Count == 0;
         BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, pos.Value, isStart);
         blockDrawers.Add(bd);
+        BlockFactory.CreateBlockAsset(blockDrawers.Last(), blockDrawers.Count == 1);
     }
 
     void AddDiamondNode(object data)
@@ -399,6 +410,18 @@ public class SceneGraph : EditorWindow
     public void HardReset()
     {
         BlockFactory.HardReset();
+        foreach (BlockDrawer bd in blockDrawers)
+            BlockFactory.DeleteBlockAsset(bd);
+    }
+    public void UpdateBlockDrawers()
+    {
+        foreach(BlockDrawer bd in blockDrawers)
+        {
+            SceneEditor se = BlockFactory.GetBlockAsset(bd);
+            if (se == null)
+                continue;
+            bd.labelText = se.SceneName;
+        }
     }
 
 }
