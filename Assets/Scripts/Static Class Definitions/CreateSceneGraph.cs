@@ -8,7 +8,7 @@ public class CreateSceneGraph : MonoBehaviour
 
     private GameObject go = null;
 
-    [MenuItem("VN_Engine/Create Scene Graph")]
+    [MenuItem("VN_Engine/Initialise")]
     [ExecuteInEditMode]
     // Start is called before the first frame update
     static void Start()
@@ -16,7 +16,7 @@ public class CreateSceneGraph : MonoBehaviour
         var SceneClass = FindObjectOfType<SceneClassContainer>();
         if (SceneClass != null)
         {
-            Debug.Log("There's already a Scene in the hierarchy!");
+            Debug.Log("Already initalised!");
             return;
         }
         var scenePrefab = Resources.Load("Prefabs/Scene");

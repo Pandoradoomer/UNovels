@@ -7,6 +7,7 @@ using UnityEngine;
 public class SceneClassContainer : MonoBehaviour
 {
     public bool wasInit = false;
+    SceneGraph sG = null;
     // Start is called before the first frame update
     void Start()
     {
@@ -25,11 +26,22 @@ public class SceneClassContainer : MonoBehaviour
         sceneGraph.FirstTimeInit();
         sceneGraph.classContainer = this;
     }
+    public void SetSceneGraph(SceneGraph sceneGraph)
+    {
+        sG = sceneGraph;
+    }
 
     //[ExecuteInEditMode]
     private void OnDestroy()
     {
-        BlockFactory.HardReset();
+        if (gameObject.scene.isLoaded)
+        {
+            if (sG != null)
+            {
+                sG.Close();
+            }
+            BlockFactory.HardReset();
+        }
     }
 }
 
@@ -59,6 +71,7 @@ public class SceneClassEditor : Editor
             {
                 _obj.SetupInitialSceneGraph(sceneGraph);
             }
+            _obj.SetSceneGraph(sceneGraph);
         }
         EditorGUILayout.EndVertical();
     }

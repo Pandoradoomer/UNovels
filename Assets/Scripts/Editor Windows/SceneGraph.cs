@@ -38,6 +38,8 @@ public class SceneGraph : EditorWindow
     bool controlPressed = false;
     private void OnEnable()
     {
+
+        BlockFactory.LoadAllBlockAssets();
         blockContents = BlockFactory.MakeBlockContentsFromJSON();
         WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
         if (blockContents == null || worldData == null)
@@ -69,8 +71,8 @@ public class SceneGraph : EditorWindow
 
     #region Zoom functions
 
-    private const float kZoomMin = 0.1f;
-    private const float kZoomMax = 10.0f;
+    private const float kZoomMin = 0.5f;
+    private const float kZoomMax = 1.5f;
 
     private Rect _zoomArea = new Rect(0.0f, 75.0f, 600.0f, 300.0f - 100.0f);
     private float _zoom = 1.0f;
@@ -91,6 +93,7 @@ public class SceneGraph : EditorWindow
         // Within the zoom area all coordinates are relative to the top left corner of the zoom area
         // with the width and height being scaled versions of the original/unzoomed area's width and height.
         EditorZoomArea.Begin(_zoom, _zoomArea);
+        DrawGrid();
         UpdateBlockDrawers();
         if (toLinkObjIndex != -1)
         {
@@ -131,7 +134,8 @@ public class SceneGraph : EditorWindow
     private void DrawNonZoomArea()
     {
         GUILayout.BeginVertical();
-        if (GUILayout.Button("Reset World Origin"))
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Recentre view"))
         {
             currentWorldOrigin = Vector2.zero;
             _zoomCoordsOrigin = currentWorldOrigin;
@@ -140,6 +144,16 @@ public class SceneGraph : EditorWindow
         {
             Save();
         }
+        if(GUILayout.Button(new GUIContent()
+        {
+            text = "Rearrange Blocks",
+            tooltip = "Brings all blocks on the screen and arranges them in a grid"
+        }))
+        {
+            RearrangeBlocks();
+        }
+        GUILayout.EndHorizontal();
+        GUILayout.Label($"MousePos x: {Event.current.mousePosition.x} y: {Event.current.mousePosition.y}");
         GUILayout.Label("Zoom: " + _zoom);
         _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax);
         _zoom = Mathf.Round(_zoom * 10) / 10;
@@ -165,7 +179,7 @@ public class SceneGraph : EditorWindow
         //right-click
         if (Event.current.type == EventType.MouseDown && Event.current.button == 1)
         {
-            
+            Vector2 mousePos = Event.current.mousePosition;
             int index = CheckBlockCollision(Event.current.mousePosition);
             if(index != -1)
             {
@@ -240,7 +254,11 @@ public class SceneGraph : EditorWindow
             if(selectedObjIndex != -1)
             {
                 Vector2 offset = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
-                blockDrawers[selectedObjIndex].pos = selectObjPos + offset;
+                Vector2 pos = selectObjPos + offset;
+                pos.x = Mathf.Round(pos.x / 20.0f) * 20.0f;
+                pos.y = Mathf.Round(pos.y / 20.0f) * 20.0f;
+                blockDrawers[selectedObjIndex].pos = pos;
+                //blockDrawers[selectedObjIndex].pos = selectObjPos + offset;
                 Repaint();
             }
             if(controlPressed)
@@ -258,13 +276,7 @@ public class SceneGraph : EditorWindow
         }
         if(Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Delete || Event.current.keyCode == KeyCode.Backspace))
         {
-            if(highlightedObjIndex != -1)
-            {
-                //DeleteBlockLinks(highlightedObjIndex);
-                //blockDrawers.RemoveAt(highlightedObjIndex);
-                //highlightedObjIndex= -1;
-                //Repaint();
-            }
+
         }
 
     }
@@ -280,17 +292,23 @@ public class SceneGraph : EditorWindow
         if (blockDrawers.Count == 1)
             return;
         DeleteBlockLinks(highlightedObjIndex);
+        BlockFactory.DeleteBlockAsset(blockDrawers[highlightedObjIndex]);
         blockDrawers.RemoveAt(highlightedObjIndex);
         highlightedObjIndex = -1;
         Repaint();
+        Save();
     }
     void AddRectNode(object data)
     {
         Vector2? pos = data as Vector2?;
         bool isStart = blockDrawers.Count == 0;
-        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, pos.Value, isStart);
+        Vector2 realPos = pos.Value - Vector2.up * _zoomArea.yMin;
+        realPos.x = Mathf.Round(realPos.x / 20.0f) * 20.0f;
+        realPos.y = Mathf.Round(realPos.y / 20.0f) * 20.0f;
+        BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, realPos, isStart);
         blockDrawers.Add(bd);
         BlockFactory.CreateBlockAsset(blockDrawers.Last(), blockDrawers.Count == 1);
+        Save();
     }
 
     void AddDiamondNode(object data)
@@ -334,6 +352,7 @@ public class SceneGraph : EditorWindow
 
         toLinkObjIndex = selectedIndex.Value;
         bdToLink = blockDrawers[selectedIndex.Value];
+        Save();
     }
 
     void UnlinkCallback(object userData)
@@ -375,7 +394,7 @@ public class SceneGraph : EditorWindow
     void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
     {
         selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
-        selectObjPos = objPos + currentWorldOrigin;
+        selectObjPos = objPos;// + currentWorldOrigin;
         var block = blockDrawers[index];
         blockDrawers.RemoveAt(index);
         blockDrawers.Add(block);
@@ -402,6 +421,7 @@ public class SceneGraph : EditorWindow
         BlockFactory.WriteWorldDataToJSON(new WorldData(
             new SerializableVector2(currentWorldOrigin), _zoom));
     }
+
     private void OnDestroy()
     {
         Save();
@@ -422,6 +442,57 @@ public class SceneGraph : EditorWindow
                 continue;
             bd.labelText = se.SceneName;
         }
+    }
+    void DrawGrid()
+    {
+        var width = position.width;
+        var height = position.height;
+        Color c = Handles.color;
+        Handles.color = new Color(1, 1, 1, 0.25f);
+        for (int i = (int)currentWorldOrigin.x % 20; i < width * 2; i += 20)
+        {
+            Vector2 start = new Vector2(i, 0);
+            Vector2 finish = new Vector2(i, height * 2);
+            Handles.DrawLine(start, finish, 0.01f * _zoom);
+        }
+        for(int i = (int)currentWorldOrigin.y % 20; i < height * 2; i+= 20)
+        {
+
+            Vector2 start = new Vector2(0, i);
+            Vector2 finish = new Vector2(width * 2, i);
+            Handles.DrawLine(start, finish, 0.01f * _zoom);
+        }
+        Handles.color = c;
+    }
+
+    void RearrangeBlocks()
+    {
+        Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
+        float initialY = InitialPos.y;
+        int index = -1;
+        for (int i = 0; i < blockDrawers.Count; i++)
+        {
+            var bd = blockDrawers[i];
+            if(bd.isStart)
+            {
+                index = i;
+                break;
+            }
+        }
+        BlockDrawer startBlock = blockDrawers[index];
+        blockDrawers.RemoveAt(index);
+        blockDrawers.Insert(0, startBlock);
+        foreach(BlockDrawer bd in blockDrawers)
+        {
+            bd.pos = InitialPos;
+            InitialPos.y += bd.blockClass.size.y * 1.5f;
+            if (InitialPos.y + bd.blockClass.size.y > position.height - 2 * bd.blockClass.size.y)
+            {
+                InitialPos.y = initialY;
+                InitialPos.x += bd.blockClass.size.x * 1.5f;
+            }
+        }
+        Save();
     }
 
 }

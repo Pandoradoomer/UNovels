@@ -17,7 +17,6 @@ public class SceneEditor : ScriptableObject
 
     private void OnEnable()
     {
-        //SceneName = "New Scene";
     }
 
     private void OnDisable()
@@ -27,6 +26,10 @@ public class SceneEditor : ScriptableObject
     {
         guid = Guid.NewGuid();
         _guid = guid.ToString();
+    }
+    public string GetGuid()
+    {
+        return _guid;
     }
     public void SetPath(string path)
     {

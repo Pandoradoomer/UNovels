@@ -293,7 +293,7 @@ public class BlockFactory
         BlockHighlightDrawCallback bhdc = GetBlockDrawerHighlightCallback(bc);
         BlockLabelDrawCallback bldc = GetBlockLabelDrawCallback(bc);
         GetBlockCentre bct = GetBlockCentre(bc);
-        SceneEditor se = sceneEditors.Find(x => x.guid == bc.drawer.blockScriptableGuid);
+        SceneEditor se = sceneEditors.Find(x => x.GetGuid() == bc.drawer.blockScriptableGuid.ToString());
         BlockDrawer bc2 = new BlockDrawer()
         {
             blockClass = bc.drawer.blockClass.BlockClass(),
@@ -400,6 +400,21 @@ public class BlockFactory
         SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
         string path = se.path;
         AssetDatabase.DeleteAsset(se.path);
+        string folderPath = se.path.Remove(se.path.LastIndexOf("/"));
+        AssetDatabase.DeleteAsset(se.path.Remove(se.path.LastIndexOf("/")));
+    }
+
+    public static void LoadAllBlockAssets()
+    {
+        var folders = AssetDatabase.GetSubFolders(ObjectPath);
+        sceneEditors.Clear();
+        foreach(var folder in folders)
+        {
+            var blocks = AssetDatabase.FindAssets("t:SceneEditor", new[] { folder });
+            var blockPath = AssetDatabase.GUIDToAssetPath(blocks[0]);
+            sceneEditors.Add(AssetDatabase.LoadAssetAtPath<SceneEditor>(blockPath));
+            
+        }
     }
 
 }
