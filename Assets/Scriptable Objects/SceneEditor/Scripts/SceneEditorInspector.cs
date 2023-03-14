@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Security;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ public class SceneEditorInspector : Editor
     SerializedProperty guidProperty;
     SerializedProperty isStartProperty;
     SerializedProperty linkProperty;
+    SerializedProperty dialogues;
     bool isSceneNameHighlighted = false;
 
     private void OnEnable()
@@ -21,10 +23,12 @@ public class SceneEditorInspector : Editor
         guidProperty = serializedObject.FindProperty("_guid");
         isStartProperty = serializedObject.FindProperty("isStart");
         linkProperty = serializedObject.FindProperty("linkedScene");
+        dialogues = serializedObject.FindProperty("dialogues");
     }
     
     public override void OnInspectorGUI()
     {
+        serializedObject.Update();
         //GUI Definition
         EditorGUILayout.LabelField(new GUIContent()
         {
@@ -37,6 +41,15 @@ public class SceneEditorInspector : Editor
         EditorGUILayout.PropertyField(isStartProperty);
         EditorGUILayout.PropertyField(linkProperty);
         GUI.enabled = true;
+
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField(new GUIContent()
+        {
+            text = "Dialogues"
+        }, EditorStyles.boldLabel);
+        DialogueListEditor.Show(dialogues);
+        //EditorGUILayout.PropertyField(dialogues);
+
         //Update the scene name in the scene graph
         string name = GUI.GetNameOfFocusedControl();
         TestIfSceneNameChanged(name);

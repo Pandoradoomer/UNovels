@@ -15,6 +15,7 @@ public class SceneEditor : ScriptableObject
     private string _path;
     public bool isStart = false;
     public SceneEditor linkedScene;
+    public List<DialogueData> dialogues = new List<DialogueData>();
 
     private void OnEnable()
     {
@@ -40,7 +41,6 @@ public class SceneEditor : ScriptableObject
 
     public void SetName(string name)
     {
-        this.name = name;
         SceneName = name;
     }
 

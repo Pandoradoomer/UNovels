@@ -371,10 +371,10 @@ public class BlockFactory
         newSceneNode.SetGuid();
         bd.blockScriptableGuid = newSceneNode.guid;
         newSceneNode.isStart = isStart;
+        newSceneNode.SetName(name);
         string path = ObjectPath + "/" + newSceneNode.guid.ToString() + "/" + newSceneNode.SceneName + ".asset";
         newSceneNode.SetPath(path);
         sceneEditors.Add(newSceneNode);
-        newSceneNode.SetName(name);
         AssetDatabase.CreateFolder(ObjectPath, newSceneNode.guid.ToString());
         AssetDatabase.CreateAsset(newSceneNode, path);
         AssetDatabase.SaveAssets();
