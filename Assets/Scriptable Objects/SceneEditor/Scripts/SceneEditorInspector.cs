@@ -11,6 +11,7 @@ public class SceneEditorInspector : Editor
     SerializedProperty pathProperty;
     SerializedProperty guidProperty;
     SerializedProperty isStartProperty;
+    SerializedProperty linkProperty;
     bool isSceneNameHighlighted = false;
 
     private void OnEnable()
@@ -19,17 +20,32 @@ public class SceneEditorInspector : Editor
         pathProperty = serializedObject.FindProperty("_path");
         guidProperty = serializedObject.FindProperty("_guid");
         isStartProperty = serializedObject.FindProperty("isStart");
+        linkProperty = serializedObject.FindProperty("linkedScene");
     }
     
     public override void OnInspectorGUI()
     {
+        //GUI Definition
+        EditorGUILayout.LabelField(new GUIContent()
+        {
+            text = "Scene Details"
+        },EditorStyles.boldLabel);
+        GUILayout.Space(10);
         GUI.SetNextControlName("Scene Name");
         EditorGUILayout.PropertyField(sceneName);
         GUI.enabled = false;
         EditorGUILayout.PropertyField(isStartProperty);
+        EditorGUILayout.PropertyField(linkProperty);
         GUI.enabled = true;
+        //Update the scene name in the scene graph
         string name = GUI.GetNameOfFocusedControl();
-        if(name == "Scene Name")
+        TestIfSceneNameChanged(name);
+        
+        serializedObject.ApplyModifiedProperties();
+    }
+    public void TestIfSceneNameChanged(string name)
+    {
+        if (name == "Scene Name")
         {
             isSceneNameHighlighted = true;
         }
@@ -41,7 +57,6 @@ public class SceneEditorInspector : Editor
                 ChangeAssetName();
             }
         }
-        serializedObject.ApplyModifiedProperties();
     }
     void ChangeAssetName()
     {

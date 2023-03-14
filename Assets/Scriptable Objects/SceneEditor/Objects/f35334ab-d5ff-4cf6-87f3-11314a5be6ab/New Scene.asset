@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
   m_Name: New Scene
   m_EditorClassIdentifier: 
-  _guid: 2e60fdc4-4ea8-4a81-b32c-14faf393ed03
+  _guid: f35334ab-d5ff-4cf6-87f3-11314a5be6ab
   SceneName: New Scene
-  _path: Assets/Scriptable Objects/SceneEditor/Objects/2e60fdc4-4ea8-4a81-b32c-14faf393ed03/New
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/f35334ab-d5ff-4cf6-87f3-11314a5be6ab/New
     Scene.asset
   isStart: 1
+  linkedScene: {fileID: 0}

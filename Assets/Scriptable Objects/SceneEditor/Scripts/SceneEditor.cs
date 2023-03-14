@@ -14,6 +14,7 @@ public class SceneEditor : ScriptableObject
     [SerializeField]
     private string _path;
     public bool isStart = false;
+    public SceneEditor linkedScene;
 
     private void OnEnable()
     {

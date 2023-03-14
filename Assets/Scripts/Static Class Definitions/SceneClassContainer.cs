@@ -64,7 +64,7 @@ public class SceneClassEditor : Editor
     public override void OnInspectorGUI()
     {
         EditorGUILayout.BeginVertical();
-        if(GUILayout.Button("Edit Scene Graph"))
+        if(GUILayout.Button("Edit Scene Structure"))
         {
             SceneGraph sceneGraph = EditorWindow.GetWindow<SceneGraph>();
             if(!_obj.wasInit)
