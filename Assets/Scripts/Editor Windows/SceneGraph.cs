@@ -307,7 +307,8 @@ public class SceneGraph : EditorWindow
         realPos.y = Mathf.Round(realPos.y / 20.0f) * 20.0f;
         BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, realPos, isStart);
         blockDrawers.Add(bd);
-        BlockFactory.CreateBlockAsset(blockDrawers.Last(), blockDrawers.Count == 1);
+        string name = $"Scene {blockDrawers.Count}";
+        BlockFactory.CreateBlockAsset(blockDrawers.Last(), blockDrawers.Count == 1, name);
         Save();
     }
 
@@ -358,12 +359,23 @@ public class SceneGraph : EditorWindow
     void UnlinkCallback(object userData)
     {
         int? selectedIndex = userData as int?;
-        blockDrawers[selectedIndex.Value].blockLink = null;
+        BlockDrawer bd = blockDrawers[selectedIndex.Value];
+        bd.blockLink = null;
+        var blockAsset = BlockFactory.GetBlockAsset(bd);
+        if(blockAsset == null)
+        {
+            Debug.LogError($"Couldn't find block with guid {bd.blockScriptableGuid}");
+            return;
+        }
+        blockAsset.linkedScene = null;
     }
     
     void LinkBlocks(BlockDrawer source, BlockDrawer link)
     {
         source.blockLink = link;
+        var sourceBlock = BlockFactory.GetBlockAsset(source);
+        var linkedBlock = BlockFactory.GetBlockAsset(link);
+        sourceBlock.linkedScene = linkedBlock;
     }
 
     void DeleteBlockLinks(int index)

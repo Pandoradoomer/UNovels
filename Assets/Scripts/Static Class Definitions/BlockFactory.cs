@@ -2,7 +2,6 @@ using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.IsolatedStorage;
 using UnityEditor;
 using UnityEngine;
 
@@ -366,7 +365,7 @@ public class BlockFactory
         AssetDatabase.Refresh();
     }
 
-    public static void CreateBlockAsset(BlockDrawer bd, bool isStart)
+    public static void CreateBlockAsset(BlockDrawer bd, bool isStart, string name)
     {
         SceneEditor newSceneNode = ScriptableObject.CreateInstance<SceneEditor>();
         newSceneNode.SetGuid();
@@ -375,6 +374,7 @@ public class BlockFactory
         string path = ObjectPath + "/" + newSceneNode.guid.ToString() + "/" + newSceneNode.SceneName + ".asset";
         newSceneNode.SetPath(path);
         sceneEditors.Add(newSceneNode);
+        newSceneNode.SetName(name);
         AssetDatabase.CreateFolder(ObjectPath, newSceneNode.guid.ToString());
         AssetDatabase.CreateAsset(newSceneNode, path);
         AssetDatabase.SaveAssets();
@@ -384,12 +384,12 @@ public class BlockFactory
 
     public static SceneEditor GetBlockAsset(BlockDrawer bd)
     {
-        return sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        return sceneEditors.Find(x => x.GetGuid() == bd.blockScriptableGuid.ToString());
     }
 
     public static void OpenBlockAsset(BlockDrawer bd)
     {
-        SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        SceneEditor se = sceneEditors.Find(x => x.GetGuid() == bd.blockScriptableGuid.ToString());
         System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
         EditorWindow window = EditorWindow.GetWindow(windowType);
         AssetDatabase.OpenAsset(se.GetInstanceID());

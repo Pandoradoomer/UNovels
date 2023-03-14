@@ -38,6 +38,12 @@ public class SceneEditor : ScriptableObject
         _path = path;
     }
 
+    public void SetName(string name)
+    {
+        this.name = name;
+        SceneName = name;
+    }
+
 }
 
 
