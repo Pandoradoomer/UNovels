@@ -60,11 +60,25 @@ public class DialogueListEditor
             normal = new GUIStyleState() { textColor = Color.white }
         };
         List<Rect> boxes = new List<Rect>();
+        GUILayout.Space(4);
         for(int i = 0; i < list.arraySize; i++)
         {
             var characterProperty = list.GetArrayElementAtIndex(i).FindPropertyRelative("Character");
             var character = new SerializedObject(characterProperty.objectReferenceValue);
-            boxes.Add(EditorGUILayout.BeginVertical(EditorStyles.helpBox));
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            boxes.Add(EditorGUILayout.BeginHorizontal());
+            GUILayout.Space(10);
+            if (i == highlightedIndex)
+            {
+                Rect last = boxes.Last();
+                last.x--;
+                last.y--;
+                last.width+=2;
+                last.height+=2;
+                EditorGUI.DrawRect(last, Color.green);
+            }
+            EditorGUI.DrawRect(boxes.Last(), Color.grey);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Say", SayLabelStyle, new[] { GUILayout.Width(30)});
             GUILayout.FlexibleSpace();
@@ -80,8 +94,13 @@ public class DialogueListEditor
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField(toShow, DialogueStyle, new[] {GUILayout.Width(100)});
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndVertical();
+            GUILayout.Space(10);
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(5);
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(2);
         }
+        GUILayout.Space(2);
         dialoguesRect = boxes;
     }
 

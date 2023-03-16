@@ -21,5 +21,5 @@ MonoBehaviour:
   dialogues:
   - dialogueText: suh dude
     Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}
-  - dialogueText: Nyo
+  - dialogueText: nyuuuuu
     Character: {fileID: 11400000, guid: 4a5d892be90e379469e4556623127fdb, type: 2}
