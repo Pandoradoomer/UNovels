@@ -51,7 +51,7 @@ public class SceneEditorInspector : Editor
         {
             text = "Dialogues"
         }, EditorStyles.boldLabel);
-        dialogueEditor.Show(dialogues, Event.current);
+        dialogueEditor.Show(serializedObject, dialogues, Event.current);
         Repaint();
         EditorGUILayout.EndVertical();
         if (height == -1 && guiRect.height != 0)

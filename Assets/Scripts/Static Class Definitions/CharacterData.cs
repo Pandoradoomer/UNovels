@@ -8,8 +8,8 @@ public class CharacterData : ScriptableObject
 {
     public Sprite characterImage;
     public string characterName;
-    public Color nameColor;
-    public Color dialogueColor;
+    public Color nameColor = Color.white;
+    public Color dialogueColor = Color.white;
 
     [MenuItem("VN_Engine/Create Character")]
     public static void Create()

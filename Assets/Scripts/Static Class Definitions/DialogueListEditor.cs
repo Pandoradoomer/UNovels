@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -9,7 +9,9 @@ public class DialogueListEditor
 {
     int highlightedIndex = -1;
     List<Rect> dialoguesRect = new List<Rect>();
-    public void Show(SerializedProperty list, Event e)
+    private Texture iconUp;
+    private Texture iconDown;
+    public void Show(SerializedObject obj, SerializedProperty list, Event e)
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         if(list.arraySize == 0)
@@ -25,45 +27,91 @@ public class DialogueListEditor
         }
         EditorGUILayout.EndVertical();
         EditorGUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-        DrawButtons(list);
+        DrawButtons(obj, list);
         ListenForEvents(list, e);
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.BeginVertical();
         if (highlightedIndex != -1)
         {
-            DrawHighlightedDialogueEditor();
+            DrawHighlightedDialogueEditor(list);
         }
         EditorGUILayout.EndVertical();
         
     }
 
+    
     private void DrawBoxes(SerializedProperty list)
     {
+        GUIStyle SayLabelStyle = new GUIStyle()
+        {
+            alignment = TextAnchor.MiddleCenter,
+            normal = new GUIStyleState() {textColor = Color.white }
+        };
+        GUIStyle CharacterStyle = new GUIStyle()
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontStyle = FontStyle.Bold,
+            normal = new GUIStyleState() { textColor = Color.white }
+
+        };
+        GUIStyle DialogueStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Italic,
+            normal = new GUIStyleState() { textColor = Color.white }
+        };
         List<Rect> boxes = new List<Rect>();
         for(int i = 0; i < list.arraySize; i++)
         {
+            var characterProperty = list.GetArrayElementAtIndex(i).FindPropertyRelative("Character");
+            var character = new SerializedObject(characterProperty.objectReferenceValue);
             boxes.Add(EditorGUILayout.BeginVertical(EditorStyles.helpBox));
             EditorGUILayout.BeginHorizontal();
-            if(highlightedIndex == i)
-            {
-                EditorGUILayout.LabelField("hehe");
-            }
-            else
-                EditorGUILayout.LabelField("Say");
-
-            GUILayout.Space(20);
+            EditorGUILayout.LabelField("Say", SayLabelStyle, new[] { GUILayout.Width(30)});
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", CharacterStyle, new[] {GUILayout.Width(50)});
             string s = list.GetArrayElementAtIndex(i).FindPropertyRelative("dialogueText").stringValue;
-            EditorGUILayout.LabelField(s);
+            bool truncated = s.Length > 15;
+            string toShow = "";
+            if (truncated)
+            {
+                toShow = s.Substring(0, 15) + "...";
+            }
+            else toShow = s;
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField(toShow, DialogueStyle, new[] {GUILayout.Width(100)});
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
         }
         dialoguesRect = boxes;
     }
 
-    private void DrawButtons(SerializedProperty list)
+    private void DrawButtons(SerializedObject obj, SerializedProperty list)
     {
+        if(GUILayout.Button(new GUIContent()
+        {
+            text = "↑"
+        },EditorStyles.miniButton))
+        {
+            if(highlightedIndex != -1 && highlightedIndex != 0 && list.arraySize > 1)
+            {
+                list.MoveArrayElement(highlightedIndex, highlightedIndex - 1);
+                highlightedIndex--;
+            }
+        }
+        if (GUILayout.Button(new GUIContent()
+        {
+            text = "↓"
+        }, EditorStyles.miniButton))
+        {
+            if(highlightedIndex != -1 && highlightedIndex != list.arraySize - 1 && list.arraySize > 1)
+            {
 
+                list.MoveArrayElement(highlightedIndex, highlightedIndex + 1);
+                highlightedIndex++;
+            }
+        }
+
+        GUILayout.FlexibleSpace();
         if (GUILayout.Button(new GUIContent()
         {
             text = "+"
@@ -73,6 +121,7 @@ public class DialogueListEditor
             SerializedProperty dialogue = list.GetArrayElementAtIndex(list.arraySize - 1);
             SerializedProperty character = dialogue.FindPropertyRelative("Character");
             character.objectReferenceValue = SearchForNarrator();
+            obj.ApplyModifiedProperties();
         }
         if (GUILayout.Button(new GUIContent()
         {
@@ -83,6 +132,7 @@ public class DialogueListEditor
                 highlightedIndex = -1;
             list.arraySize--;
         }
+        //EditorGUILayout.EndHorizontal();
     }
     private void ListenForEvents(SerializedProperty list, Event e)
     {
@@ -108,11 +158,29 @@ public class DialogueListEditor
     }
 
     float boxRectWidth = -1;
-    private void DrawHighlightedDialogueEditor()
+    private void DrawHighlightedDialogueEditor(SerializedProperty list)
     {
-        Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         string text = "";
         string[] options = { };
+
+        var dialogue = list.GetArrayElementAtIndex(highlightedIndex);
+        var characterProperty = dialogue.FindPropertyRelative("Character");
+        var character = new SerializedObject(dialogue.FindPropertyRelative("Character").objectReferenceValue);   
+        var dialogueText = dialogue.FindPropertyRelative("dialogueText");
+
+        text = dialogueText.stringValue;
+        var characters = GetAllCharacters();
+        List<string> characterNames = characters.Select(character => character.characterName).ToList();
+        characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
+        options = characterNames.ToArray();
+        var selectedCharacterName = character.FindProperty("characterName").stringValue;
+        int selectedIndex = -1;
+        if (selectedCharacterName == "")
+            selectedIndex = characterNames.IndexOf("<None>");
+        else 
+            selectedIndex = characterNames.IndexOf(selectedCharacterName);
+
+        Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         GUILayout.Space(5);
         EditorGUILayout.LabelField(new GUIContent()
         {
@@ -121,7 +189,7 @@ public class DialogueListEditor
         }, EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Character", GUILayout.Width(100));
-        EditorGUILayout.Popup(0, options);
+        selectedIndex = EditorGUILayout.Popup(selectedIndex, options);
         EditorGUILayout.EndHorizontal();
         GUILayout.Space(10);
         EditorGUILayout.LabelField("Story text", EditorStyles.boldLabel);
@@ -141,6 +209,9 @@ public class DialogueListEditor
         {
             boxRectWidth = boxRect.width;
         }
+
+        characterProperty.objectReferenceValue = GetCharacterByName(options[selectedIndex]);
+        dialogueText.stringValue = text;
     }
 
     private CharacterData SearchForNarrator()
@@ -151,10 +222,10 @@ public class DialogueListEditor
         {
             characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
         }
-        return characters.FirstOrDefault(x => x.name == "");
+        return characters.FirstOrDefault(x => x.characterName == "");
     }
 
-    private List<CharacterData> SearchForCharacters()
+    private List<CharacterData> GetAllCharacters()
     {
         var assets = AssetDatabase.FindAssets("", new[] { "Assets/Scriptable Objects/Characters/" });
         List<CharacterData> characters = new List<CharacterData>();
@@ -163,5 +234,19 @@ public class DialogueListEditor
             characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
         }
         return characters;
+    }
+
+    private CharacterData GetCharacterByName(string name)
+    {
+
+        var assets = AssetDatabase.FindAssets("", new[] { "Assets/Scriptable Objects/Characters/" });
+        List<CharacterData> characters = new List<CharacterData>();
+        foreach (var asset in assets)
+        {
+            characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
+        }
+        if (name == "<None>")
+            return characters.FirstOrDefault(x => x.characterName == "");
+        return characters.FirstOrDefault(x => x.characterName == name);
     }
 }
