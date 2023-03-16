@@ -27,4 +27,16 @@ public class CharacterData : ScriptableObject
         AssetDatabase.SaveAssets();
         Selection.activeObject = buffer;
     }
+
+    public static void CreateNarrator()
+    {
+        CharacterData buffer = ScriptableObject.CreateInstance<CharacterData>();
+        string path = $"Assets/Scriptable Objects/Characters/Narrator.asset";
+        buffer.name = "Narrator";
+        buffer.characterName = "";
+        buffer.dialogueColor = Color.white;
+        AssetDatabase.CreateAsset(buffer, path);
+        AssetDatabase.SaveAssets();
+        Selection.activeObject = buffer;
+    }
 }

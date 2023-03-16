@@ -123,7 +123,7 @@ public class SceneGraph : EditorWindow
             bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, Color.black, bd.blockClass);
             if(bd.isStart)
             {
-                bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin - Vector2.up * bd.blockClass.size.y, "Start Node", Color.white, bd.blockClass);
+                bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin - Vector2.up * bd.blockClass.size.y, "Story Start", Color.white, bd.blockClass);
             }
 
         }

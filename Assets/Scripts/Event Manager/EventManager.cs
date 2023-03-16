@@ -8,36 +8,6 @@ public static class EventManager
     
     private static Dictionary<IEvent, Action<IEventPacket>> eventDictionary = new Dictionary<IEvent, Action<IEventPacket>>();
 
-    //private static EventManager eventManager;
-    //public static EventManager Instance
-    //{
-    //    get
-    //    {
-    //        if(!eventManager)
-    //        {
-    //            eventManager = FindObjectOfType(typeof(EventManager)) as EventManager;
-    //        }
-    //        if(!eventManager)
-    //        {
-    //            Debug.LogError("There needs to be one active EventManager script on a GameObject in your scene!");
-    //        }
-    //        else
-    //        {
-    //            eventManager.Init();
-    //            DontDestroyOnLoad(eventManager);
-    //        }
-    //        return eventManager;
-    //    }
-    //}
-    //
-    //void Init()
-    //{
-    //    if(eventDictionary == null)
-    //    {
-    //        eventDictionary = new Dictionary<IEvent, Action<IEventPacket>>();
-    //    }
-    //}
-
     public static void StartListening(IEvent e, Action<IEventPacket> listener)
     {
         Action<IEventPacket> thisEvent;

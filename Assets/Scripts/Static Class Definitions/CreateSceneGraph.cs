@@ -28,6 +28,7 @@ public class CreateSceneGraph : MonoBehaviour
         Debug.Log("Instantiated!");
         var go = Instantiate(scenePrefab);
         go.name = go.name.Replace("(Clone)","");
+        CharacterData.CreateNarrator();
     }
 
     // Update is called once per frame

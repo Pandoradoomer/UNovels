@@ -15,6 +15,9 @@ public class SceneEditorInspector : Editor
     SerializedProperty linkProperty;
     SerializedProperty dialogues;
     bool isSceneNameHighlighted = false;
+    DialogueListEditor dialogueEditor = new DialogueListEditor();
+    Rect guiRect;
+    float height = -1;
 
     private void OnEnable()
     {
@@ -30,6 +33,7 @@ public class SceneEditorInspector : Editor
     {
         serializedObject.Update();
         //GUI Definition
+        guiRect = EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField(new GUIContent()
         {
             text = "Scene Details"
@@ -47,9 +51,12 @@ public class SceneEditorInspector : Editor
         {
             text = "Dialogues"
         }, EditorStyles.boldLabel);
-        DialogueListEditor.Show(dialogues);
-        //EditorGUILayout.PropertyField(dialogues);
-
+        dialogueEditor.Show(dialogues, Event.current);
+        Repaint();
+        EditorGUILayout.EndVertical();
+        if (height == -1 && guiRect.height != 0)
+            height = guiRect.height;
+        EditorGUILayout.Space((Screen.height - height)/2.0f - 7.5f);
         //Update the scene name in the scene graph
         string name = GUI.GetNameOfFocusedControl();
         TestIfSceneNameChanged(name);
