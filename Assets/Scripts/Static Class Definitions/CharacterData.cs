@@ -37,6 +37,11 @@ public class CharacterData : ScriptableObject
         buffer.dialogueColor = Color.white;
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
-        Selection.activeObject = buffer;
+        //Selection.activeObject = buffer;
+    }
+
+    public static void DeleteNarrator()
+    {
+        AssetDatabase.DeleteAsset("Assets/Scriptable Objects/Characters/Narrator.asset");
     }
 }

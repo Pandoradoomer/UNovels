@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
   m_Name: Scene 1
   m_EditorClassIdentifier: 
-  _guid: ec78974a-6547-4fd5-94f1-1a5185bb8954
+  _guid: de72657a-0c85-4398-b4af-818b30aafcde
   SceneName: Scene 1
-  _path: Assets/Scriptable Objects/SceneEditor/Objects/ec78974a-6547-4fd5-94f1-1a5185bb8954/Scene
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/de72657a-0c85-4398-b4af-818b30aafcde/Scene
     1.asset
   isStart: 1
   linkedScene: {fileID: 0}
   dialogues:
-  - dialogueText: suh dude
+  - dialogueText: Ce pula mea
     Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}
-  - dialogueText: nyuuuuu
-    Character: {fileID: 11400000, guid: 4a5d892be90e379469e4556623127fdb, type: 2}
+  - dialogueText: faceti
+    Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}
+  - dialogueText: ma?
+    Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}

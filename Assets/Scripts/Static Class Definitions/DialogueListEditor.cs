@@ -5,6 +5,11 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
+public enum CommandType
+{
+    SAY,
+    WAIT
+}
 public class DialogueListEditor 
 {
     int highlightedIndex = -1;
@@ -42,7 +47,7 @@ public class DialogueListEditor
     
     private void DrawBoxes(SerializedProperty list)
     {
-        GUIStyle SayLabelStyle = new GUIStyle()
+        GUIStyle CommandTypeLabelStyle = new GUIStyle()
         {
             alignment = TextAnchor.MiddleCenter,
             normal = new GUIStyleState() {textColor = Color.white }
@@ -80,7 +85,7 @@ public class DialogueListEditor
             }
             EditorGUI.DrawRect(boxes.Last(), Color.grey);
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Say", SayLabelStyle, new[] { GUILayout.Width(30)});
+            EditorGUILayout.LabelField("Say", CommandTypeLabelStyle, new[] { GUILayout.Width(30)});
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", CharacterStyle, new[] {GUILayout.Width(50)});
             string s = list.GetArrayElementAtIndex(i).FindPropertyRelative("dialogueText").stringValue;
@@ -151,7 +156,6 @@ public class DialogueListEditor
                 highlightedIndex = -1;
             list.arraySize--;
         }
-        //EditorGUILayout.EndHorizontal();
     }
     private void ListenForEvents(SerializedProperty list, Event e)
     {
@@ -161,6 +165,7 @@ public class DialogueListEditor
             {
                 if(CheckBoxCollision(e.mousePosition, dialoguesRect[i]))
                 {
+                    GUI.FocusControl(null);
                     highlightedIndex = i;
                 }
             }

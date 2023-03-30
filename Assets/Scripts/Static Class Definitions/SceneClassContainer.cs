@@ -11,7 +11,16 @@ public class SceneClassContainer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        if(Application.isPlaying)
+        {
+            var go = Resources.Load("Prefabs/SceneManager");
+            if(go == null)
+            {
+                Debug.LogError($"Couldn't find SceneManager in the Resources/Prefabs folder!");
+                return;
+            }
+            Instantiate(go,this.transform);
+        }
     }
 
     // Update is called once per frame

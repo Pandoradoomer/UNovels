@@ -283,8 +283,10 @@ public class SceneGraph : EditorWindow
 
     void EditCallback(object data)
     {
+        ActiveEditorTracker.sharedTracker.isLocked = false;
         int? index = data as int?;
-        BlockFactory.OpenBlockAsset(blockDrawers[index.Value]);
+        BlockFactory.OpenBlockAsset(this, blockDrawers[index.Value]);
+        ActiveEditorTracker.sharedTracker.isLocked = true;
     }
 
     void DeleteBlock()
@@ -407,6 +409,7 @@ public class SceneGraph : EditorWindow
     {
         selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
         selectObjPos = objPos;// + currentWorldOrigin;
+        EditCallback(index);
         var block = blockDrawers[index];
         blockDrawers.RemoveAt(index);
         blockDrawers.Add(block);

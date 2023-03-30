@@ -387,7 +387,7 @@ public class BlockFactory
         return sceneEditors.Find(x => x.GetGuid() == bd.blockScriptableGuid.ToString());
     }
 
-    public static void OpenBlockAsset(BlockDrawer bd)
+    public static void OpenBlockAsset(EditorWindow parent, BlockDrawer bd)
     {
         SceneEditor se = sceneEditors.Find(x => x.GetGuid() == bd.blockScriptableGuid.ToString());
         System.Type windowType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow");
@@ -415,6 +415,11 @@ public class BlockFactory
             sceneEditors.Add(AssetDatabase.LoadAssetAtPath<SceneEditor>(blockPath));
             
         }
+    }
+
+    public static List<SceneEditor> GetSceneEditors()
+    {
+        return sceneEditors;
     }
 
 }

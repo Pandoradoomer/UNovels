@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 [CustomEditor(typeof(SceneEditor))]
@@ -13,7 +14,12 @@ public class SceneEditorInspector : Editor
     SerializedProperty guidProperty;
     SerializedProperty isStartProperty;
     SerializedProperty linkProperty;
-    SerializedProperty dialogues;
+    SerializedProperty commands;
+    SerializedProperty entryTransition;
+    SerializedProperty entryValue;
+    SerializedProperty exitTransition;
+    SerializedProperty exitValue;
+    SerializedProperty backgroundImage;
     bool isSceneNameHighlighted = false;
     DialogueListEditor dialogueEditor = new DialogueListEditor();
     Rect guiRect;
@@ -26,7 +32,12 @@ public class SceneEditorInspector : Editor
         guidProperty = serializedObject.FindProperty("_guid");
         isStartProperty = serializedObject.FindProperty("isStart");
         linkProperty = serializedObject.FindProperty("linkedScene");
-        dialogues = serializedObject.FindProperty("dialogues");
+        commands = serializedObject.FindProperty("Commands");
+        entryTransition = serializedObject.FindProperty("entryTransition");
+        entryValue = serializedObject.FindProperty("entryTransitionValue");
+        exitTransition = serializedObject.FindProperty("exitTransition");
+        exitValue = serializedObject.FindProperty("exitTransitionValue");
+        backgroundImage = serializedObject.FindProperty("backgroundImage");
     }
     
     public override void OnInspectorGUI()
@@ -41,6 +52,20 @@ public class SceneEditorInspector : Editor
         GUILayout.Space(10);
         GUI.SetNextControlName("Scene Name");
         EditorGUILayout.PropertyField(sceneName);
+        EditorGUILayout.PropertyField(backgroundImage);
+        EditorGUILayout.PropertyField(entryTransition);
+        if (entryTransition.GetEnumValue<TransitionTypes>() == TransitionTypes.FADE)
+        {
+            GUI.SetNextControlName("Fade in time");
+            EditorGUILayout.PropertyField(entryValue);
+        }
+        EditorGUILayout.PropertyField(exitTransition);
+        if(exitTransition.GetEnumValue<TransitionTypes>() == TransitionTypes.FADE)
+        {
+
+            GUI.SetNextControlName("Fade out time");
+            EditorGUILayout.PropertyField(exitValue);
+        }
         GUI.enabled = false;
         EditorGUILayout.PropertyField(isStartProperty);
         EditorGUILayout.PropertyField(linkProperty);
@@ -51,7 +76,8 @@ public class SceneEditorInspector : Editor
         {
             text = "Dialogues"
         }, EditorStyles.boldLabel);
-        dialogueEditor.Show(serializedObject, dialogues, Event.current);
+        dialogueEditor.Show(serializedObject, commands, Event.current);
+        
         Repaint();
         EditorGUILayout.EndVertical();
         if (height == -1 && guiRect.height != 0)
