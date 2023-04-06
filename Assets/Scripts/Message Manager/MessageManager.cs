@@ -123,9 +123,33 @@ public class MessageManager : MonoBehaviour
                     yield return new WaitForSeconds(command.Time);
                     break;
                 }
+            case CommandType.MOVE:
+                {
+                    yield return StartCoroutine(MoveCharacter(command));
+                    break;
+                }
         }
     }
+    public IEnumerator MoveCharacter(CommandData command)
+    {
+        var key = currentImages.Keys.ToList().FirstOrDefault(x => x == command.Character.characterName);
+        if(key == null)
+        {
+            Debug.LogError($"Character {command.Character.characterName} not currently shown!" +
+                $"Make sure the character you want to move is shown on the screen and hasn't been hidden");
+        }
 
+        Image img = currentImages[key].GetComponent<Image>();
+        Vector3 posFrom = img.rectTransform.anchoredPosition;
+        Vector3 posTo = characterImages[(int)command.LocationTo].GetComponent<Image>().rectTransform.anchoredPosition;
+        Vector3 currPos = posFrom;
+        for(float i = 0; i < command.Time; i += Time.deltaTime)
+        {
+            currPos = Vector3.Lerp(posFrom, posTo, i/command.Time);
+            img.rectTransform.anchoredPosition = currPos;
+            yield return null;
+        }
+    }
     public IEnumerator UnloadScene(SceneEditor scene)
     {
         switch(scene.exitTransition)
@@ -213,6 +237,7 @@ public class MessageManager : MonoBehaviour
         if(!dialogue.IsShow)
         {
             var go = Instantiate(characterImages[(int)dialogue.LocationTo],canvas.transform);
+            go.name = dialogue.Character.characterName;
             go.transform.SetSiblingIndex(1);
             currentImages.Add(dialogue.Character.characterName, go);
             Image currImg = go.GetComponent<Image>();
@@ -413,33 +438,6 @@ public class MessageManager : MonoBehaviour
         }
         return false;
     }
-
-    #endregion
-
-    #region Transition Functions
-
-    //IEnumerator DoImageTransition(TransitionTypes transType, float param)
-    //{
-    //    characterImage.gameObject.SetActive(true);
-    //    switch (transType)
-    //    {
-    //        case TransitionTypes.FADE:
-    //            yield return StartCoroutine(Fade(param));
-    //            break;
-    //    }
-    //    yield return null;
-    //}
-    //
-    //IEnumerator Fade(float param)
-    //{
-    //    Color c = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-    //    for(float i = 0.0f; i <= param; i+= Time.deltaTime)
-    //    {
-    //        c.a = Mathf.Lerp(0.0f, 1.0f, i / param);
-    //        characterImage.color = c;
-    //        yield return null;
-    //    }
-    //}
     IEnumerator Punch(float strength, float time)
     {
         Vector3 originalPosBG = backgroundImage.transform.position;
@@ -451,7 +449,7 @@ public class MessageManager : MonoBehaviour
             Vector3 randPos = UnityEngine.Random.insideUnitSphere;
             backgroundImage.transform.position = originalPosBG + randPos * shakeAmount;
             int j = 0;
-            foreach(var kvp in currentImages)
+            foreach (var kvp in currentImages)
             {
                 kvp.Value.transform.position = originalPosImages[j] + randPos * shakeAmount;
                 j++;
@@ -469,6 +467,11 @@ public class MessageManager : MonoBehaviour
         textBox.transform.position = originalPosTextbox;
         tagWait = -1;
     }
+
+    #endregion
+
+    #region Transition Functions
+
 
     IEnumerator FadeTextBoxAway(bool isInverted)
     {
