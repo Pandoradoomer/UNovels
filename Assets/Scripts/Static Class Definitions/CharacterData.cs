@@ -45,3 +45,5 @@ public class CharacterData : ScriptableObject
         AssetDatabase.DeleteAsset("Assets/Scriptable Objects/Characters/Narrator.asset");
     }
 }
+
+

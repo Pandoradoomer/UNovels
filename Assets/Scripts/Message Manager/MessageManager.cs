@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
@@ -14,20 +17,27 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI dialogueText;
     [SerializeField]
-    private Image characterImage;
+    private Canvas canvas;
     [SerializeField]
     private GameObject textBox;
     [SerializeField]
     private Camera mainCamera;
     [SerializeField]
     private Image backgroundImage;
+    [SerializeField]
+    private Image FadeToBlackPanel;
+
+    [SerializeField]
+    List<GameObject> characterImages;
+
+    Dictionary<string, GameObject> currentImages;
 
     bool isMessageRunning = false;
     private bool isSpeeding = false;
     bool waitingForInput = false;
 
     public float speed = 20.0f;
-    public float baseSpeed = 20.0f;
+    public float baseSpeed= 20.0f;
     public string currentText = "";
     public float tagWait = -1;
 
@@ -47,9 +57,13 @@ public class MessageManager : MonoBehaviour
     }
     void Start()
     {
+        currentImages = new Dictionary<string, GameObject>();
+        speed = baseSpeed;
         boxColorAlpha = textBox.GetComponent<Image>().color.a;
+        textBox.SetActive(false);
         if(mainCamera == null)
             mainCamera = FindObjectOfType<Camera>();
+
     }
 
 
@@ -69,10 +83,96 @@ public class MessageManager : MonoBehaviour
             }
         }
     }
+    public void PlayScene(SceneEditor scene)
+    {
+        StartCoroutine(PlaySceneCoroutine(scene));
+    }
+    private IEnumerator PlaySceneCoroutine(SceneEditor scene)
+    {
+        yield return StartCoroutine(LoadScene(scene));
+        foreach(CommandData command in scene.Commands)
+        {
+            yield return StartCoroutine(ParseCommand(command));
+        }
+
+        yield return StartCoroutine(UnloadScene(scene));
+        SceneManager.Instance.currScene = scene.linkedScene;
+        SceneManager.Instance.isScenePlaying = false;
+
+
+    }
+
+    private IEnumerator ParseCommand(CommandData command)
+    {
+        switch(command.type)
+        {
+            case CommandType.SAY:
+                {
+                    yield return StartCoroutine(DisplayMessage(command));
+                    while (waitingForInput)
+                        yield return null;
+                    break;
+                }
+            case CommandType.SHOW:
+                {
+                    yield return StartCoroutine(ShowCharacter(command));
+                    break;
+                }
+            case CommandType.WAIT:
+                {
+                    yield return new WaitForSeconds(command.Time);
+                    break;
+                }
+        }
+    }
+
+    public IEnumerator UnloadScene(SceneEditor scene)
+    {
+        switch(scene.exitTransition)
+        {
+            case TransitionTypes.NONE:
+                {
+                    backgroundImage.gameObject.SetActive(false);
+                    List<string> keys = currentImages.Keys.ToList();
+                    foreach(var key in keys)
+                    {
+                        Destroy(currentImages[key]);
+                        currentImages.Remove(key);
+                    }
+                    textBox.SetActive(false);
+                    characterName.text = string.Empty;
+                    dialogueText.text = string.Empty;
+                    break;
+                }
+            case TransitionTypes.FADE:
+                {
+                    Color c = FadeToBlackPanel.color;
+                    FadeToBlackPanel.gameObject.SetActive(true);
+                    for (float i = 0; i < scene.exitTransitionValue; i+= Time.deltaTime)
+                    {
+                        c.a = Mathf.Lerp(0, 1, i / scene.exitTransitionValue);
+                        FadeToBlackPanel.color = c;
+                        yield return null;
+                    }
+                    backgroundImage.gameObject.SetActive(false);
+                    List<string> keys = currentImages.Keys.ToList();
+                    foreach (var key in keys)
+                    {
+                        Destroy(currentImages[key]);
+                        currentImages.Remove(key);
+                    }
+                    textBox.SetActive(false);
+                    characterName.text = string.Empty;
+                    dialogueText.text = string.Empty;
+                    break;
+                }
+        }
+    }
 
     public IEnumerator LoadScene(SceneEditor scene)
     {
         backgroundImage.sprite = scene.backgroundImage;
+        FadeToBlackPanel.gameObject.SetActive(false);
         switch(scene.entryTransition)
         {
             case TransitionTypes.NONE:
@@ -80,21 +180,71 @@ public class MessageManager : MonoBehaviour
                 yield return null;
                 break;
             case TransitionTypes.FADE:
-                yield return StartCoroutine(FadeInBackground(scene.entryTransitionValue));
+                yield return StartCoroutine(FadeBackground(scene.entryTransitionValue));
                 break;
         }
         yield return null;
     }
-    public IEnumerator FadeInBackground(float time)
+    public IEnumerator FadeBackground(float time, bool _in = true)
     {
-        Color c = new Color(1, 1, 1, 0);
-        backgroundImage.color = new Color(1, 1, 1, 0);
-        backgroundImage.gameObject.SetActive(true);
+        Color c;
+        if (_in)
+            c = new Color(1, 1, 1, 0);
+        else
+            c = new Color(1, 1, 1, 1);
+        backgroundImage.color = c;
+        if(_in)
+            backgroundImage.gameObject.SetActive(true);
         for(float i = 0.0f; i < time; i += Time.deltaTime)
         {
-            c.a = Mathf.Lerp(0, 1, i / time);
+            if (_in)
+                c.a = Mathf.Lerp(0, 1, i / time);
+            else
+                c.a = Mathf.Lerp(0, 1, (time - i) / time);
             backgroundImage.color = c;
             yield return null;
+        }
+        if(!_in)
+            backgroundImage.gameObject.SetActive(false);
+    }
+
+    private IEnumerator ShowCharacter(CommandData dialogue)
+    {
+        if(!dialogue.IsShow)
+        {
+            var go = Instantiate(characterImages[(int)dialogue.LocationTo],canvas.transform);
+            go.transform.SetSiblingIndex(1);
+            currentImages.Add(dialogue.Character.characterName, go);
+            Image currImg = go.GetComponent<Image>();
+            currImg.color = new Color(1, 1, 1, 0);
+            switch(dialogue.TransitionType)
+            {
+                case TransitionTypes.NONE:
+                    {
+                        currImg.color = new Color(1, 1, 1, 1);
+                        yield return null;
+                        break;
+                    }
+                case TransitionTypes.FADE:
+                    {
+                        Color c = currImg.color;
+                        for(float i = 0; i < dialogue.Time; i += Time.deltaTime)
+                        {
+                            c.a = Mathf.Lerp(0.0f, 1.0f, i/dialogue.Time);
+                            currImg.color = c;
+                            yield return null;
+                        }
+                        break;
+                    }
+                case TransitionTypes.PUNCH:
+                    {
+                        Color c = new Color(1, 1, 1, 1);
+                        yield return StartCoroutine(Punch(0.5f, dialogue.Time));
+                        yield return null;
+                        break;
+                    }
+            }
+
         }
     }
     public IEnumerator DisplayMessage(CommandData dialogue)
@@ -102,6 +252,10 @@ public class MessageManager : MonoBehaviour
         characterName.text = dialogue.Character.characterName;
         characterName.color = dialogue.Character.nameColor;
         dialogueText.color = dialogue.Character.dialogueColor;
+
+        if (!textBox.gameObject.activeInHierarchy)
+            textBox.SetActive(true);
+
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
@@ -119,7 +273,9 @@ public class MessageManager : MonoBehaviour
                 yield return StartCoroutine(WaitForPunctuation(text[i]));
             }
 
+
         }
+        waitingForInput = true;
         isMessageRunning = false;
     }
 
@@ -142,7 +298,8 @@ public class MessageManager : MonoBehaviour
                 }
             default:
                 {
-                    yield break;
+                    yield return new WaitForSeconds(1.0f/speed);
+                    break;
                 }
         }
     }
@@ -195,11 +352,61 @@ public class MessageManager : MonoBehaviour
             }
             else if (bareTag.Contains("punch"))
             {
+                float strength = 10.0f, time = 0.5f;
+                if(bareTag.Contains("strength="))
+                {
+                    try
+                    {
+                        int strIndex = bareTag.IndexOf("strength=");
+                        int nextSpaceIndex = bareTag.IndexOf(" ", strIndex);
+                        if (nextSpaceIndex == -1)
+                            nextSpaceIndex = bareTag.Length;
+                        int strLength = "strength=".Length;
+                        string strSubstring = bareTag.Substring(strIndex + strLength, nextSpaceIndex - strIndex - strLength);
+                        strength = float.Parse(strSubstring);
+                    }
+                    catch(Exception e)
+                    {
+                        strength = -1;
+                    }
+                }
+                if (bareTag.Contains("time="))
+                {
+                    try
+                    {
+                        int timeIndex = bareTag.IndexOf("time=");
+                        int nextSpaceIndex = bareTag.IndexOf(" ", timeIndex);
+                        if (nextSpaceIndex == -1)
+                            nextSpaceIndex = bareTag.Length;
+                        int timeLength = "time=".Length;
+                        string timeSubstring = bareTag.Substring(timeIndex + timeLength, nextSpaceIndex - timeIndex - timeLength);
+                        time = float.Parse(timeSubstring);
+                    }
+                    catch (Exception e)
+                    {
+                        time = -1;
+                    }
+                }
                 index -= closingIndex + 1;
                 text = text.Remove(index, closingIndex + 1);
-                StartCoroutine(Punch());
-                tagWait = 0.5f;
-                return true;
+                if(strength == -1)
+                {
+                    StartCoroutine(Punch(0.7f, time));
+                    tagWait = time;
+                    return true;
+                }
+                else if(time == -1)
+                {
+                    StartCoroutine(Punch(strength, 0.5f));
+                    tagWait = 0.5f;
+                    return true;
+                }
+                else
+                {
+                    StartCoroutine(Punch(strength, time));
+                    tagWait = time;
+                    return true;
+                }
             }
             //currentText += fullTag;
             return true;
@@ -211,44 +418,54 @@ public class MessageManager : MonoBehaviour
 
     #region Transition Functions
 
-    IEnumerator DoImageTransition(TransitionTypes transType, float param)
+    //IEnumerator DoImageTransition(TransitionTypes transType, float param)
+    //{
+    //    characterImage.gameObject.SetActive(true);
+    //    switch (transType)
+    //    {
+    //        case TransitionTypes.FADE:
+    //            yield return StartCoroutine(Fade(param));
+    //            break;
+    //    }
+    //    yield return null;
+    //}
+    //
+    //IEnumerator Fade(float param)
+    //{
+    //    Color c = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+    //    for(float i = 0.0f; i <= param; i+= Time.deltaTime)
+    //    {
+    //        c.a = Mathf.Lerp(0.0f, 1.0f, i / param);
+    //        characterImage.color = c;
+    //        yield return null;
+    //    }
+    //}
+    IEnumerator Punch(float strength, float time)
     {
-        characterImage.gameObject.SetActive(true);
-        switch (transType)
-        {
-            case TransitionTypes.FADE:
-                yield return StartCoroutine(Fade(param));
-                break;
-        }
-        yield return null;
-    }
-
-    IEnumerator Fade(float param)
-    {
-        Color c = new Color(1.0f, 1.0f, 1.0f, 0.0f);
-        for(float i = 0.0f; i <= param; i+= Time.deltaTime)
-        {
-            c.a = Mathf.Lerp(0.0f, 1.0f, i / param);
-            characterImage.color = c;
-            yield return null;
-        }
-    }
-    IEnumerator Punch()
-    {
-        Vector3 originalPosCam = mainCamera.transform.position;
-        Vector3 originalPosImage = characterImage.transform.position;
+        Vector3 originalPosBG = backgroundImage.transform.position;
+        List<Vector3> originalPosImages = currentImages.Values.ToListPooled().Select(x => x.transform.position).ToList();
         Vector3 originalPosTextbox = textBox.transform.position;
-        float shakeAmount = 0.7f;
-        for (float i = 0; i < 0.5f; i += Time.deltaTime)
+        float shakeAmount = strength * 5;
+        for (float i = 0; i < time; i += Time.deltaTime)
         {
             Vector3 randPos = UnityEngine.Random.insideUnitSphere;
-            mainCamera.transform.position = originalPosCam + randPos * shakeAmount;
-            characterImage.transform.position = originalPosImage + randPos * shakeAmount;
+            backgroundImage.transform.position = originalPosBG + randPos * shakeAmount;
+            int j = 0;
+            foreach(var kvp in currentImages)
+            {
+                kvp.Value.transform.position = originalPosImages[j] + randPos * shakeAmount;
+                j++;
+            }
             textBox.transform.position = originalPosTextbox + randPos * shakeAmount;
             yield return null;
         }
-        mainCamera.transform.position = originalPosCam;
-        characterImage.transform.position = originalPosImage;
+        backgroundImage.transform.position = originalPosBG;
+        int k = 0;
+        foreach (var kvp in currentImages)
+        {
+            kvp.Value.transform.position = originalPosImages[k];
+            k++;
+        }
         textBox.transform.position = originalPosTextbox;
         tagWait = -1;
     }

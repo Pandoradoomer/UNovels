@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
+  m_Name: Scene 2
+  m_EditorClassIdentifier: 
+  _guid: 386b9818-607e-4a6a-89df-64928a1ffb04
+  SceneName: Scene 2
+  entryTransition: 1
+  entryTransitionValue: 2
+  exitTransition: 1
+  exitTransitionValue: 2
+  backgroundImage: {fileID: 21300000, guid: e2f3974870802674e966a3d221acf794, type: 3}
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/386b9818-607e-4a6a-89df-64928a1ffb04/Scene
+    2.asset
+  isStart: 0
+  linkedScene: {fileID: 0}
+  Commands:
+  - type: 3
+    dialogueText: 
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 0
+    TransitionType: 1
+    Time: 1
+    IsShow: 0
+  - type: 1
+    dialogueText: 
+    Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    Time: 2
+    IsShow: 0
+  - type: 0
+    dialogueText: Mno, da pe tini de ce te fute grija, e?
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    Time: 0
+    IsShow: 0
