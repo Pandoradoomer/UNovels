@@ -367,14 +367,9 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
-            characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
-            int selectedCharIndex = -1;
-            if (selectedCharacterName == "")
-                selectedCharIndex = characterNames.IndexOf("<None>");
-            else
-                selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = characters[selectedCharIndex];
@@ -487,14 +482,9 @@ namespace UnityEditor
 
             text = dialogueText.stringValue;
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
-            characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             options = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
-            int selectedIndex = -1;
-            if (selectedCharacterName == "")
-                selectedIndex = characterNames.IndexOf("<None>");
-            else
-                selectedIndex = characterNames.IndexOf(selectedCharacterName);
+            int selectedIndex = characterNames.IndexOf(selectedCharacterName);
 
             Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Space(5);
@@ -539,14 +529,9 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
-            characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
-            int selectedCharIndex = -1;
-            if (selectedCharacterName == "")
-                selectedCharIndex = characterNames.IndexOf("<None>");
-            else
-                selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
             //location property
             var posProperty = element.FindPropertyRelative("LocationTo");
             string[] posOptions = { "Left", "Centre", "Right" };
@@ -597,14 +582,9 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
-            characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
-            int selectedCharIndex = -1;
-            if (selectedCharacterName == "")
-                selectedCharIndex = characterNames.IndexOf("<None>");
-            else
-                selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = characters[selectedCharIndex];
@@ -650,7 +630,7 @@ namespace UnityEditor
             {
                 characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
             }
-            return characters.FirstOrDefault(x => x.characterName == "");
+            return characters.FirstOrDefault(x => x.characterName == "Narrator");
         }
 
         private List<CharacterData> GetAllCharacters()

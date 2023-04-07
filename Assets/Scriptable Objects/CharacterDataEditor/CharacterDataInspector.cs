@@ -13,6 +13,7 @@ public class CharacterDataInspector : Editor
     SerializedProperty nameColor;
     SerializedProperty dialogueColor;
     SerializedProperty emotions;
+    SerializedProperty isNarrator;
 
     private bool isCharacterNameHighlighted = false;
 
@@ -23,22 +24,35 @@ public class CharacterDataInspector : Editor
         nameColor = serializedObject.FindProperty("nameColor");
         dialogueColor = serializedObject.FindProperty("dialogueColor");
         emotions = serializedObject.FindProperty("emotions");
+        isNarrator = serializedObject.FindProperty("isNarrator");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
         EditorGUILayout.LabelField("MUST SET!", EditorStyles.boldLabel);
+        if(!isNarrator.boolValue)
         EditorGUILayout.PropertyField(characterImage, new GUIContent()
         { 
             text = "Character Sprite",
             tooltip = "Default character image.\n" +
             "If no emotions are specified, this image will be used."
         });
+        
         GUI.SetNextControlName("Character Name");
+        if(isNarrator.boolValue)
+        {
+            GUI.enabled = false;
+        }
         EditorGUILayout.PropertyField(characterName);
-        EditorGUILayout.PropertyField(nameColor);
+        if(isNarrator.boolValue)
+        {
+            GUI.enabled = true;
+        }
+        if(!isNarrator.boolValue)
+            EditorGUILayout.PropertyField(nameColor);
         EditorGUILayout.PropertyField(dialogueColor);
+        if(!isNarrator.boolValue)
         EditorGUILayout.PropertyField(emotions, new GUIContent()
         { 
             text = "Character Emotions",

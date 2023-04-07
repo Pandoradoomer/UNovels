@@ -116,6 +116,7 @@ public class CharacterList : EditorWindow
         {
             characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
         }
+
         return characters;
     }
 

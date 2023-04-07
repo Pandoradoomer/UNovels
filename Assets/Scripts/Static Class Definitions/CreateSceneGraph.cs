@@ -47,6 +47,7 @@ public class CreateSceneGraph : MonoBehaviour
         if (EditorWindow.HasOpenInstances<SceneGraph>())
             EditorWindow.GetWindow<SceneGraph>().Close();
         CharacterData.DeleteNarrator();
+        BlockFactory.HardReset();
     }
     [MenuItem("VN_Engine/Open Scene Structure")]
     static void OpenSceneGraph()

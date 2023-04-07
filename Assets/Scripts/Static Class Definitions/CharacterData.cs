@@ -12,6 +12,7 @@ public class CharacterData : ScriptableObject
     public Color nameColor = Color.white;
     public Color dialogueColor = Color.white;
     public List<EmotionPair> emotions;
+    public bool isNarrator;
 
     public static void Create()
     {
@@ -26,6 +27,7 @@ public class CharacterData : ScriptableObject
         string path = $"Assets/Scriptable Objects/Characters/{name}{assets.Length}.asset";
         buffer.characterName = name + assets.Length.ToString();
         buffer.name = name + assets.Length.ToString();
+        buffer.isNarrator = false;
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
         Selection.activeObject = buffer;
@@ -34,9 +36,10 @@ public class CharacterData : ScriptableObject
     public static void CreateNarrator()
     {
         CharacterData buffer = ScriptableObject.CreateInstance<CharacterData>();
-        string path = $"Assets/Scriptable Objects/Characters/Narrator.asset";
-        buffer.name = "Narrator";
-        buffer.characterName = "";
+        string path = $"Assets/Scriptable Objects/Characters/_Narrator.asset";
+        buffer.name = "_Narrator";
+        buffer.characterName = "Narrator";
+        buffer.isNarrator = true;
         buffer.dialogueColor = Color.white;
         buffer.emotions = new List<EmotionPair>();
         AssetDatabase.CreateAsset(buffer, path);
