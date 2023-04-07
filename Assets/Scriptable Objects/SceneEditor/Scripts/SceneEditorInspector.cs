@@ -21,7 +21,7 @@ public class SceneEditorInspector : Editor
     SerializedProperty exitValue;
     SerializedProperty backgroundImage;
     bool isSceneNameHighlighted = false;
-    DialogueListEditor dialogueEditor = new DialogueListEditor();
+    DialogueListEditor dialogueEditor;
     Rect guiRect;
     float height = -1;
 
@@ -38,6 +38,7 @@ public class SceneEditorInspector : Editor
         exitTransition = serializedObject.FindProperty("exitTransition");
         exitValue = serializedObject.FindProperty("exitTransitionValue");
         backgroundImage = serializedObject.FindProperty("backgroundImage");
+        dialogueEditor = new DialogueListEditor();
     }
     
     public override void OnInspectorGUI()

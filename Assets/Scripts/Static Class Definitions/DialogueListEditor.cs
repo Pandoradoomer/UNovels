@@ -20,7 +20,13 @@ namespace UnityEditor
         private Texture iconUp;
         private Texture iconDown;
         public int commandIndex = 0;
-        public string[] commandOptions = Enum.GetNames(typeof(CommandType)).ToArray();//{ "SAY", "WAIT", "MOVE", "SHOW" };
+        public string[] commandOptions = Enum.GetNames(typeof(CommandType)).ToArray();
+        List<CharacterData> characters;
+
+        public DialogueListEditor()
+        {
+            characters = GetAllCharacters();
+        }
         public void Show(SerializedObject obj, SerializedProperty list, Event e)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -165,9 +171,12 @@ namespace UnityEditor
             var characterProperty = list.GetArrayElementAtIndex(index).FindPropertyRelative("Character");
             var character = new SerializedObject(characterProperty.objectReferenceValue);
 
+            var emotionProperty = list.GetArrayElementAtIndex(index).FindPropertyRelative("emotion");
+            var emotionString = emotionProperty.stringValue;
+
             EditorGUILayout.LabelField("SHOW", style1, new[] { GUILayout.Width(30) });
             GUILayout.FlexibleSpace();
-            EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
+            EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}({emotionString})", style2, new[] { GUILayout.Width(50) });
 
             GUILayout.FlexibleSpace();
             var position = list.GetArrayElementAtIndex(index).FindPropertyRelative("LocationTo");
@@ -357,7 +366,6 @@ namespace UnityEditor
             //character property
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
-            var characters = GetAllCharacters();
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
             characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();
@@ -478,7 +486,6 @@ namespace UnityEditor
             var dialogueText = dialogue.FindPropertyRelative("dialogueText");
 
             text = dialogueText.stringValue;
-            var characters = GetAllCharacters();
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
             characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             options = characterNames.ToArray();
@@ -499,22 +506,6 @@ namespace UnityEditor
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
             selectedIndex = EditorGUILayout.Popup(selectedIndex, options);
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(new GUIContent()
-            {
-                text = "Edit Character"
-            }, new[] {
-        GUILayout.MinWidth(100),
-        GUILayout.MaxWidth(200)}
-            ))
-            {
-                ActiveEditorTracker.sharedTracker.isLocked = false;
-                OpenCharacterByName(characterNames[selectedIndex]);
-                ActiveEditorTracker.sharedTracker.isLocked = true;
-            }
-            GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
             EditorGUILayout.LabelField("Story text", EditorStyles.boldLabel);
@@ -547,7 +538,6 @@ namespace UnityEditor
             //character property
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
-            var characters = GetAllCharacters();
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
             characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();
@@ -606,7 +596,6 @@ namespace UnityEditor
             //character property
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
-            var characters = GetAllCharacters();
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
             characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
             var charOptions = characterNames.ToArray();

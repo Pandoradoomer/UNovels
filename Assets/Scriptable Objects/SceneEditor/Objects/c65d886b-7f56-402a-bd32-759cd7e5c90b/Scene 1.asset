@@ -29,6 +29,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 1
     TransitionType: 1
+    emotion: Default
     Time: 1.5
     IsShow: 0
   - type: 1
@@ -36,6 +37,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: 7c3c4b7a2e38a5340bf36366dc56e99f, type: 2}
     LocationTo: 0
     TransitionType: 0
+    emotion: 
     Time: 0.75
     IsShow: 0
   - type: 0
@@ -43,6 +45,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 0
     TransitionType: 0
+    emotion: 
     Time: 0
     IsShow: 0
   - type: 0
@@ -51,6 +54,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 0
     TransitionType: 0
+    emotion: 
     Time: 0
     IsShow: 0
   - type: 2
@@ -59,6 +63,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 0
     TransitionType: 0
+    emotion: 
     Time: 1
     IsShow: 1
   - type: 0
@@ -66,6 +71,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 2
     TransitionType: 0
+    emotion: 
     Time: 1
     IsShow: 1
   - type: 2
@@ -74,6 +80,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 2
     TransitionType: 0
+    emotion: 
     Time: 1
     IsShow: 1
   - type: 0
@@ -81,5 +88,6 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 2
     TransitionType: 0
+    emotion: 
     Time: 1
     IsShow: 1

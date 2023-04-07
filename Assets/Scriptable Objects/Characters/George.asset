@@ -16,3 +16,10 @@ MonoBehaviour:
   characterName: George
   nameColor: {r: 1, g: 0, b: 0, a: 1}
   dialogueColor: {r: 1, g: 1, b: 1, a: 1}
+  emotions:
+  - emotion: Neutral
+    sprite: {fileID: -1973612814, guid: e4854165fb297ce41bcc9726372912ec, type: 3}
+  - emotion: Angry
+    sprite: {fileID: -1888985002, guid: e4854165fb297ce41bcc9726372912ec, type: 3}
+  - emotion: Spooked
+    sprite: {fileID: -733315598, guid: e4854165fb297ce41bcc9726372912ec, type: 3}
