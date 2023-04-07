@@ -23,4 +23,12 @@ MonoBehaviour:
     1.asset
   isStart: 1
   linkedScene: {fileID: 0}
-  Commands: []
+  Commands:
+  - type: 0
+    dialogueText: 
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 0
+    IsShow: 0

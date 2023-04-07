@@ -82,6 +82,11 @@ namespace UnityEditor
                 var commandElement = list.GetArrayElementAtIndex(i);
                 var commandType = commandElement.FindPropertyRelative("type");
                 CommandType type = (CommandType)commandType.enumValueIndex;
+                var character = commandElement.FindPropertyRelative("Character");
+                if(character.objectReferenceValue == null)
+                {
+                    character.objectReferenceValue = SearchForNarrator();
+                }
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.Space(5);
                 boxes.Add(EditorGUILayout.BeginHorizontal());
