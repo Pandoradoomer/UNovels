@@ -170,6 +170,15 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
+    private void OnFocus()
+    {
+        if(highlightedObjIndex != -1)
+        {
+            EditCallback(highlightedObjIndex);
+
+        }
+    }
+
     private void OnGUI()
     {
         DrawZoomArea();
