@@ -29,7 +29,7 @@ MonoBehaviour:
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 1
     TransitionType: 1
-    emotion: Default
+    emotion: Angry
     Time: 1.5
     IsShow: 0
   - type: 1
@@ -66,6 +66,14 @@ MonoBehaviour:
     emotion: 
     Time: 1
     IsShow: 1
+  - type: 4
+    dialogueText: S'amu-s pe dreapta!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 2
+    TransitionType: 0
+    emotion: Neutral
+    Time: 1
+    IsShow: 1
   - type: 0
     dialogueText: Nii, amu-s pe stanga!
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
@@ -83,8 +91,16 @@ MonoBehaviour:
     emotion: 
     Time: 1
     IsShow: 1
-  - type: 0
+  - type: 4
     dialogueText: S'amu-s pe dreapta!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 2
+    TransitionType: 0
+    emotion: Spooked
+    Time: 1
+    IsShow: 1
+  - type: 0
+    dialogueText: Uai, cine m-a mutat pe dreapta?!<punch time=0.5>
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 2
     TransitionType: 0

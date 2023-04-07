@@ -128,6 +128,11 @@ public class MessageManager : MonoBehaviour
                     yield return StartCoroutine(MoveCharacter(command));
                     break;
                 }
+            case CommandType.SPRITE:
+                {
+                    yield return StartCoroutine(ChangeSprite(command));
+                    break;
+                }
         }
     }
     public IEnumerator UnloadScene(SceneEditor scene)
@@ -213,13 +218,30 @@ public class MessageManager : MonoBehaviour
     }
 
     #region Command Parsing
+
+    public IEnumerator ChangeSprite(CommandData command)
+    {
+        if(currentImages.ContainsKey(command.Character.characterName))
+        {
+            Image img = currentImages[command.Character.characterName].GetComponent<Image>();
+            var currEmotion = SelectSpriteFromCommand(command);
+            img.sprite = currEmotion;
+        }
+        else
+        {
+            Debug.LogError($"Cannot change sprite of character {command.Character.characterName} because he isn't in the scene!" +
+                $"Make sure every SPRITE command is preceded by a SHOW command or that you haven't made the sprite disappear with a SHOW - Hide command!");
+            yield break;
+        }
+        yield return null;
+    }
     public IEnumerator MoveCharacter(CommandData command)
     {
         var key = currentImages.Keys.ToList().FirstOrDefault(x => x == command.Character.characterName);
         if (key == null)
         {
-            Debug.LogError($"Character {command.Character.characterName} not currently shown!" +
-                $"Make sure the character you want to move is shown on the screen and hasn't been hidden");
+            Debug.LogError($"Cannot change sprite of character {command.Character.characterName} because he isn't in the scene!" +
+                $"Make sure every MOVE command is preceded by a SHOW command and that you haven't made the sprite disappear with a SHOW - Hide command!");
             yield break;
         }
         //In this case it means 'Text box should be hidden'
@@ -324,6 +346,8 @@ public class MessageManager : MonoBehaviour
             while (ParseTag(ref i, ref text)) ;
             if (tagWait != -1)
                 yield return new WaitForSeconds(tagWait);
+            if (i >= text.Length)
+                break;
             string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
             dialogueText.text = splicedText;
             if (isMessageRunning)
@@ -365,6 +389,8 @@ public class MessageManager : MonoBehaviour
 
     bool ParseTag(ref int index, ref string text)
     {
+        if (index >= text.Length)
+            return false;
         if (text[index] == '<')
         {
             string fullTag = text.Substring(index);
