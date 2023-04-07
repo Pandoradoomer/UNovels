@@ -169,6 +169,11 @@ namespace UnityEditor
                 EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
                 return;
             }
+            else
+            {
+                if(character.FindProperty("characterName").stringValue == "Narrator")
+                    characterProperty.objectReferenceValue = characters[1];
+            }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
 
             GUILayout.FlexibleSpace();
@@ -194,6 +199,11 @@ namespace UnityEditor
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
                 return;
+            }
+            else
+            {
+                if (character.FindProperty("characterName").stringValue == "Narrator")
+                    characterProperty.objectReferenceValue = characters[1];
             }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}({emotionString})", style2, new[] { GUILayout.Width(50) });
 
@@ -231,6 +241,11 @@ namespace UnityEditor
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
                 return;
+            }
+            else
+            {
+                if (character.FindProperty("characterName").stringValue == "Narrator")
+                    characterProperty.objectReferenceValue = characters[1];
             }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
 
@@ -393,12 +408,16 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
+            if(characterNames.Count > 1)
+            {
+                characterNames.Remove("Narrator");
+            }
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
-            var currentCharacterData = characters[selectedCharIndex];
+            var currentCharacterData = GetCharacterByName(selectedCharacterName);
             //get all emotions of a certain character
             string[] emotionOptions = currentCharacterData.emotions.Select(em => em.emotion).ToArray();
             //if the character has no emotions, create one for it
@@ -566,6 +585,10 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
+            if (characterNames.Count > 1)
+            {
+                characterNames.Remove("Narrator");
+            }
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
@@ -630,12 +653,16 @@ namespace UnityEditor
             var characterProperty = element.FindPropertyRelative("Character");
             var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
             List<string> characterNames = characters.Select(character => character.characterName).ToList();
+            if (characterNames.Count > 1)
+            {
+                characterNames.Remove("Narrator");
+            }
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
-            var currentCharacterData = characters[selectedCharIndex];
+            var currentCharacterData = GetCharacterByName(selectedCharacterName);
             //get all emotions of a certain character
             string[] emotionOptions = currentCharacterData.emotions.Select(em => em.emotion).ToArray();
             //if the character has no emotions, create one for it

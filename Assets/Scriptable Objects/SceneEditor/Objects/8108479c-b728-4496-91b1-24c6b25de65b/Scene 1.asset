@@ -34,7 +34,7 @@ MonoBehaviour:
     IsShow: 0
   - type: 3
     dialogueText: 
-    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    Character: {fileID: 0}
     LocationTo: 0
     TransitionType: 0
     emotion: Default
@@ -42,7 +42,7 @@ MonoBehaviour:
     IsShow: 0
   - type: 2
     dialogueText: 
-    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    Character: {fileID: 0}
     LocationTo: 0
     TransitionType: 0
     emotion: Default
@@ -50,7 +50,7 @@ MonoBehaviour:
     IsShow: 0
   - type: 4
     dialogueText: 
-    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    Character: {fileID: 0}
     LocationTo: 0
     TransitionType: 0
     emotion: Default

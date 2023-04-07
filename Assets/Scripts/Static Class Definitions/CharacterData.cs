@@ -28,6 +28,7 @@ public class CharacterData : ScriptableObject
         buffer.characterName = name + assets.Length.ToString();
         buffer.name = name + assets.Length.ToString();
         buffer.isNarrator = false;
+        buffer.emotions = new List<EmotionPair>();
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
         Selection.activeObject = buffer;
