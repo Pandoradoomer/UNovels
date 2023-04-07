@@ -15,7 +15,8 @@ public enum CommandType
     SAY,
     WAIT,
     MOVE,
-    SHOW
+    SHOW,
+    SPRITE
 }
 [Serializable]
 public class CommandData
@@ -25,6 +26,7 @@ public class CommandData
     public CharacterData Character;
     public ScreenPosition LocationTo;
     public TransitionTypes TransitionType;
+    public string emotion;
     public float Time;
     public bool IsShow;
 

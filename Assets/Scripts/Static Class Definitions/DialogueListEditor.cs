@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
@@ -7,6 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 using static UnityEditor.Progress;
+using static UnityEditor.Rendering.FilterWindow;
 
 namespace UnityEditor
 {
@@ -18,7 +20,7 @@ namespace UnityEditor
         private Texture iconUp;
         private Texture iconDown;
         public int commandIndex = 0;
-        public string[] commandOptions = { "SAY", "WAIT", "MOVE", "SHOW" };
+        public string[] commandOptions = Enum.GetNames(typeof(CommandType)).ToArray();//{ "SAY", "WAIT", "MOVE", "SHOW" };
         public void Show(SerializedObject obj, SerializedProperty list, Event e)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -118,9 +120,11 @@ namespace UnityEditor
                 case CommandType.WAIT:
                     ShowWaitInside(list, index, style1, style2, style3);
                     break;
+                case CommandType.SPRITE:
+                    ShowSpriteInside(list, index, style1, style2, style3);
+                    break;
             }
         }
-
         private void ShowSayInside(SerializedProperty list, int index, GUIStyle style1, GUIStyle style2, GUIStyle style3)
         {
             var characterProperty = list.GetArrayElementAtIndex(index).FindPropertyRelative("Character");
@@ -182,6 +186,23 @@ namespace UnityEditor
 
             EditorGUILayout.LabelField(waitTime.floatValue.ToString(), style3, new[] { GUILayout.Width(100) });
         }
+        private void ShowSpriteInside(SerializedProperty list, int index, GUIStyle style1, GUIStyle style2, GUIStyle style3)
+        {
+
+            var characterProperty = list.GetArrayElementAtIndex(index).FindPropertyRelative("Character");
+            var character = new SerializedObject(characterProperty.objectReferenceValue);
+
+            var emotionProperty = list.GetArrayElementAtIndex(index).FindPropertyRelative("emotion");
+            var emotion = emotionProperty.stringValue;
+
+            EditorGUILayout.LabelField("SPRITE", style1, new[] { GUILayout.Width(30) });
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
+
+            GUILayout.FlexibleSpace();
+
+            EditorGUILayout.LabelField(emotion, style3, new[] { GUILayout.Width(100) });
+        }
         #endregion
         private void DrawButtons(SerializedObject obj, SerializedProperty list)
         {
@@ -222,6 +243,8 @@ namespace UnityEditor
                 type.enumValueIndex = commandIndex;
                 SerializedProperty character = el.FindPropertyRelative("Character");
                 character.objectReferenceValue = SearchForNarrator();
+                var emotion = el.FindPropertyRelative("emotion");
+                emotion.stringValue = "Default";
                 obj.ApplyModifiedProperties();
             }
             if (GUILayout.Button(new GUIContent()
@@ -293,6 +316,11 @@ namespace UnityEditor
                         DrawHighlightedDialogueEditor_Move(list);
                         break;
                     }
+                case CommandType.SPRITE:
+                    {
+                        DrawHighlightedDialogueEditor_Sprite(list);
+                        break;
+                    }
             }
 
         }
@@ -319,6 +347,19 @@ namespace UnityEditor
                 selectedCharIndex = characterNames.IndexOf("<None>");
             else
                 selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            //emotion property
+            var emotionProperty = element.FindPropertyRelative("emotion");
+            var currentCharacterData = characters[selectedCharIndex];
+            //get all emotions of a certain character
+            string[] emotionOptions = currentCharacterData.emotions.Select(em => em.emotion).ToArray();
+            //if the character has no emotions, create one for it
+            if (emotionOptions.Length == 0)
+                emotionOptions = new[] { "Default" };
+            var emotionsList = emotionOptions.ToList();
+            int selectedEmotionIndex = emotionsList.IndexOf(emotionProperty.stringValue);
+            //if we didn't find the emotion inside the list, this means we're in the default branch
+            if (selectedEmotionIndex == -1)
+                selectedEmotionIndex = 0;
             //location property
             var posProperty = element.FindPropertyRelative("LocationTo");
             string[] posOptions = { "Left", "Centre", "Right" };
@@ -341,6 +382,10 @@ namespace UnityEditor
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
             selectedCharIndex = EditorGUILayout.Popup(selectedCharIndex, charOptions);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Emotion", GUILayout.Width(100));
+            selectedEmotionIndex = EditorGUILayout.Popup(selectedEmotionIndex, emotionOptions);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Position", GUILayout.Width(100));
@@ -369,6 +414,7 @@ namespace UnityEditor
                 boxRectWidth = boxRect.width;
             }
             characterProperty.objectReferenceValue = GetCharacterByName(charOptions[selectedCharIndex]);
+            emotionProperty.stringValue = emotionOptions[selectedEmotionIndex];
             timeProperty.floatValue = timeValue;
             posProperty.enumValueIndex = selectedPosIndex;
             transProperty.enumValueIndex = selectedTransIndex;
@@ -531,6 +577,54 @@ namespace UnityEditor
             }
             characterProperty.objectReferenceValue = GetCharacterByName(charOptions[selectedCharIndex]);
             posProperty.enumValueIndex = selectedPosIndex;
+        }
+        private void DrawHighlightedDialogueEditor_Sprite(SerializedProperty list)
+        {
+
+            var element = list.GetArrayElementAtIndex(highlightedIndex);
+
+            //character property
+            var characterProperty = element.FindPropertyRelative("Character");
+            var character = new SerializedObject(element.FindPropertyRelative("Character").objectReferenceValue);
+            var characters = GetAllCharacters();
+            List<string> characterNames = characters.Select(character => character.characterName).ToList();
+            characterNames[characterNames.FindIndex(x => x == "")] = "<None>";
+            var charOptions = characterNames.ToArray();
+            var selectedCharacterName = character.FindProperty("characterName").stringValue;
+            int selectedCharIndex = -1;
+            if (selectedCharacterName == "")
+                selectedCharIndex = characterNames.IndexOf("<None>");
+            else
+                selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            //emotion property
+            var emotionProperty = element.FindPropertyRelative("emotion");
+            var currentCharacterData = characters[selectedCharIndex];
+            //get all emotions of a certain character
+            string[] emotionOptions = currentCharacterData.emotions.Select(em => em.emotion).ToArray();
+            //if the character has no emotions, create one for it
+            if (emotionOptions.Length == 0)
+                emotionOptions = new[] { "Default" };
+            var emotionsList = emotionOptions.ToList();
+            int selectedEmotionIndex = emotionsList.IndexOf(emotionProperty.stringValue);
+            //if we didn't find the emotion inside the list, this means we're in the default branch
+            if (selectedEmotionIndex == -1)
+                selectedEmotionIndex = 0;
+
+            Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUILayout.Space(5);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Character", GUILayout.Width(100));
+            selectedCharIndex = EditorGUILayout.Popup(selectedCharIndex, charOptions);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Emotion", GUILayout.Width(100));
+            selectedEmotionIndex = EditorGUILayout.Popup(selectedEmotionIndex, emotionOptions);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+
+            characterProperty.objectReferenceValue = GetCharacterByName(charOptions[selectedCharIndex]);
+            emotionProperty.stringValue = emotionOptions[selectedEmotionIndex];
         }
         #endregion
 

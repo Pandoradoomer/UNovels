@@ -238,43 +238,69 @@ public class MessageManager : MonoBehaviour
             yield return null;
         }
     }
-
+    private Sprite SelectSpriteFromCommand(CommandData dialogue)
+    {
+        Sprite emotionSprite = null;
+        if (dialogue.emotion == "Default")
+        {
+            emotionSprite = dialogue.Character.characterImage;
+        }
+        else
+        {
+            EmotionPair emotion = dialogue.Character.emotions.First(x => x.emotion == dialogue.emotion);
+            emotionSprite = emotion.sprite;
+        }
+        return emotionSprite;
+    }
     private IEnumerator ShowCharacter(CommandData dialogue)
     {
         if(!dialogue.IsShow)
         {
-            var go = Instantiate(characterImages[(int)dialogue.LocationTo],canvas.transform);
-            go.name = dialogue.Character.characterName;
-            go.transform.SetSiblingIndex(1);
-            currentImages.Add(dialogue.Character.characterName, go);
-            Image currImg = go.GetComponent<Image>();
-            currImg.color = new Color(1, 1, 1, 0);
-            switch(dialogue.TransitionType)
+            if(currentImages.ContainsKey(dialogue.Character.characterName))
             {
-                case TransitionTypes.NONE:
+                Debug.LogError($"Character {dialogue.Character.characterName} is already on screen!");
+                yield break;
+            }
+            else
+            {
+                if(dialogue.Character.name != "")
+                {
+
+                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], canvas.transform);
+                    go.name = dialogue.Character.characterName;
+                    go.transform.SetSiblingIndex(1);
+                    currentImages.Add(dialogue.Character.characterName, go);
+                    Image currImg = go.GetComponent<Image>();
+                    currImg.color = new Color(1, 1, 1, 0);
+                    currImg.sprite = SelectSpriteFromCommand(dialogue);
+                    switch (dialogue.TransitionType)
                     {
-                        currImg.color = new Color(1, 1, 1, 1);
-                        yield return null;
-                        break;
+                        case TransitionTypes.NONE:
+                            {
+                                currImg.color = new Color(1, 1, 1, 1);
+                                yield return null;
+                                break;
+                            }
+                        case TransitionTypes.FADE:
+                            {
+                                Color c = currImg.color;
+                                for (float i = 0; i < dialogue.Time; i += Time.deltaTime)
+                                {
+                                    c.a = Mathf.Lerp(0.0f, 1.0f, i / dialogue.Time);
+                                    currImg.color = c;
+                                    yield return null;
+                                }
+                                break;
+                            }
+                        case TransitionTypes.PUNCH:
+                            {
+                                currImg.color = new Color(1, 1, 1, 1);
+                                yield return StartCoroutine(Punch(0.5f, dialogue.Time));
+                                yield return null;
+                                break;
+                            }
                     }
-                case TransitionTypes.FADE:
-                    {
-                        Color c = currImg.color;
-                        for(float i = 0; i < dialogue.Time; i += Time.deltaTime)
-                        {
-                            c.a = Mathf.Lerp(0.0f, 1.0f, i/dialogue.Time);
-                            currImg.color = c;
-                            yield return null;
-                        }
-                        break;
-                    }
-                case TransitionTypes.PUNCH:
-                    {
-                        Color c = new Color(1, 1, 1, 1);
-                        yield return StartCoroutine(Punch(0.5f, dialogue.Time));
-                        yield return null;
-                        break;
-                    }
+                }
             }
 
         }

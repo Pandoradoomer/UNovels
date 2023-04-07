@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System;
 
 
 public class CharacterData : ScriptableObject
@@ -10,6 +11,7 @@ public class CharacterData : ScriptableObject
     public string characterName;
     public Color nameColor = Color.white;
     public Color dialogueColor = Color.white;
+    public List<EmotionPair> emotions;
 
     [MenuItem("VN_Engine/Create Character")]
     public static void Create()
@@ -44,6 +46,12 @@ public class CharacterData : ScriptableObject
     {
         AssetDatabase.DeleteAsset("Assets/Scriptable Objects/Characters/Narrator.asset");
     }
+}
+[Serializable]
+public struct EmotionPair
+{
+    public string emotion;
+    public Sprite sprite;
 }
 
 
