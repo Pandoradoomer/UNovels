@@ -162,6 +162,13 @@ namespace UnityEditor
 
             EditorGUILayout.LabelField("MOVE", style1, new[] { GUILayout.Width(30) });
             GUILayout.FlexibleSpace();
+            if(characters.Count == 1)
+            {
+                EditorGUILayout.LabelField($"NONE", style2, new[] { GUILayout.Width(50) });
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
+                return;
+            }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
 
             GUILayout.FlexibleSpace();
@@ -181,6 +188,13 @@ namespace UnityEditor
 
             EditorGUILayout.LabelField("SHOW", style1, new[] { GUILayout.Width(30) });
             GUILayout.FlexibleSpace();
+            if (characters.Count == 1)
+            {
+                EditorGUILayout.LabelField($"NONE", style2, new[] { GUILayout.Width(50) });
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
+                return;
+            }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}({emotionString})", style2, new[] { GUILayout.Width(50) });
 
             GUILayout.FlexibleSpace();
@@ -211,6 +225,13 @@ namespace UnityEditor
 
             EditorGUILayout.LabelField("SPRITE", style1, new[] { GUILayout.Width(30) });
             GUILayout.FlexibleSpace();
+            if (characters.Count == 1)
+            {
+                EditorGUILayout.LabelField($"NONE", style2, new[] { GUILayout.Width(50) });
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField("", style3, new[] { GUILayout.Width(100) });
+                return;
+            }
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
 
             GUILayout.FlexibleSpace();
@@ -407,6 +428,17 @@ namespace UnityEditor
                 text = "Show",
                 tooltip = "Show or hide a character or the scene background"
             }, EditorStyles.boldLabel);
+
+            if (charOptions.Length == 1 && charOptions[0] == "Narrator")
+            {
+                EditorGUILayout.LabelField("There are no viable characters to be shown!\n" +
+                    "Create a character using the 'Add Character' button on the Character List tab!", new[]
+                    {
+                        GUILayout.MinHeight(100)
+                    });
+                EditorGUILayout.EndVertical();
+                return;
+            }
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
             selectedCharIndex = EditorGUILayout.Popup(selectedCharIndex, charOptions);
@@ -552,6 +584,17 @@ namespace UnityEditor
                 text = "Move",
                 tooltip = "Move a character sprite to another predetermined position"
             }, EditorStyles.boldLabel);
+
+            if (charOptions.Length == 1 && charOptions[0] == "Narrator")
+            {
+                EditorGUILayout.LabelField("There are no viable characters to be moved!\n" +
+                    "Create a character using the 'Add Character' button on the Character List tab!", new[]
+                    {
+                        GUILayout.MinHeight(100)
+                    });
+                EditorGUILayout.EndVertical();
+                return;
+            }
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
             selectedCharIndex = EditorGUILayout.Popup(selectedCharIndex, charOptions);
@@ -612,6 +655,17 @@ namespace UnityEditor
                 tooltip = "Change an active character's sprite to another from its emotion palette"
             }, EditorStyles.boldLabel);
 
+
+            if (charOptions.Length == 1 && charOptions[0] == "Narrator")
+            {
+                EditorGUILayout.LabelField("There are no viable characters to change the sprite of!\n" +
+                    "Create a character using the 'Add Character' button on the Character List tab!", new[]
+                    {
+                        GUILayout.MinHeight(100)
+                    });
+                EditorGUILayout.EndVertical();
+                return;
+            }
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
             selectedCharIndex = EditorGUILayout.Popup(selectedCharIndex, charOptions);

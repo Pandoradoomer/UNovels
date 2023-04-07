@@ -221,6 +221,8 @@ public class MessageManager : MonoBehaviour
 
     public IEnumerator ChangeSprite(CommandData command)
     {
+        if (command.Character.isNarrator)
+            yield break;
         if(currentImages.ContainsKey(command.Character.characterName))
         {
             Image img = currentImages[command.Character.characterName].GetComponent<Image>();
@@ -237,6 +239,8 @@ public class MessageManager : MonoBehaviour
     }
     public IEnumerator MoveCharacter(CommandData command)
     {
+        if (command.Character.isNarrator)
+            yield break;
         var key = currentImages.Keys.ToList().FirstOrDefault(x => x == command.Character.characterName);
         if (key == null)
         {
@@ -276,6 +280,8 @@ public class MessageManager : MonoBehaviour
     }
     private IEnumerator ShowCharacter(CommandData dialogue)
     {
+        if (dialogue.Character.isNarrator)
+            yield break;
         if(!dialogue.IsShow)
         {
             if(currentImages.ContainsKey(dialogue.Character.characterName))
