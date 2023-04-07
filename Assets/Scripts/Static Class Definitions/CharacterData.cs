@@ -13,7 +13,6 @@ public class CharacterData : ScriptableObject
     public Color dialogueColor = Color.white;
     public List<EmotionPair> emotions;
 
-    [MenuItem("VN_Engine/Create Character")]
     public static void Create()
     {
         string name = "NewCharacter";
@@ -25,6 +24,8 @@ public class CharacterData : ScriptableObject
         var assets = AssetDatabase.FindAssets("", new[] { "Assets/Scriptable Objects/Characters/" });
         CharacterData buffer = ScriptableObject.CreateInstance<CharacterData>();
         string path = $"Assets/Scriptable Objects/Characters/{name}{assets.Length}.asset";
+        buffer.characterName = name + assets.Length.ToString();
+        buffer.name = name + assets.Length.ToString();
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
         Selection.activeObject = buffer;
@@ -37,6 +38,7 @@ public class CharacterData : ScriptableObject
         buffer.name = "Narrator";
         buffer.characterName = "";
         buffer.dialogueColor = Color.white;
+        buffer.emotions = new List<EmotionPair>();
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
         //Selection.activeObject = buffer;

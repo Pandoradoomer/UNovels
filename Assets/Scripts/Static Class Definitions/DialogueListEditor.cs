@@ -404,8 +404,8 @@ namespace UnityEditor
             GUILayout.Space(5);
             EditorGUILayout.LabelField(new GUIContent()
             {
-                text = "Wait",
-                tooltip = "Wait for the specified amount of seconds"
+                text = "Show",
+                tooltip = "Show or hide a character or the scene background"
             }, EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
@@ -559,8 +559,8 @@ namespace UnityEditor
             GUILayout.Space(5);
             EditorGUILayout.LabelField(new GUIContent()
             {
-                text = "Wait",
-                tooltip = "Wait for the specified amount of seconds"
+                text = "Move",
+                tooltip = "Move a character sprite to another predetermined position"
             }, EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));
@@ -621,6 +621,11 @@ namespace UnityEditor
 
             Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Space(5);
+            EditorGUILayout.LabelField(new GUIContent()
+            {
+                text = "Sprite",
+                tooltip = "Change an active character's sprite to another from its emotion palette"
+            }, EditorStyles.boldLabel);
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Character", GUILayout.Width(100));

@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
   m_Name: Scene 1
   m_EditorClassIdentifier: 
-  _guid: ce3fa159-497a-48af-afc5-19e38c59198b
+  _guid: 5fcacb83-89ae-48a2-a19b-0a369eb424ae
   SceneName: Scene 1
   entryTransition: 1
-  entryTransitionValue: 1.5
+  entryTransitionValue: 0
   exitTransition: 1
   exitTransitionValue: 0
-  backgroundImage: {fileID: 21300000, guid: e2f3974870802674e966a3d221acf794, type: 3}
-  _path: Assets/Scriptable Objects/SceneEditor/Objects/ce3fa159-497a-48af-afc5-19e38c59198b/Scene
+  backgroundImage: {fileID: 0}
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/5fcacb83-89ae-48a2-a19b-0a369eb424ae/Scene
     1.asset
   isStart: 1
   linkedScene: {fileID: 0}
@@ -27,21 +27,8 @@ MonoBehaviour:
   - type: 3
     dialogueText: 
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
-    LocationTo: 1
-    TransitionType: 1
-    Time: 0
-    IsShow: 0
-  - type: 1
-    dialogueText: 
-    Character: {fileID: 0}
-    LocationTo: 1
-    TransitionType: 1
-    Time: 1.5
-    IsShow: 0
-  - type: 0
-    dialogueText: Ce pula mea?
-    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
-    LocationTo: 1
-    TransitionType: 1
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Neutral
     Time: 0
     IsShow: 0

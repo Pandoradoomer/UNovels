@@ -41,9 +41,21 @@ public class CreateSceneGraph : MonoBehaviour
     [ExecuteInEditMode]
     static void ResetVNEngine()
     {
+        ActiveEditorTracker.sharedTracker.isLocked = false;
         DestroyImmediate(FindObjectOfType<SceneClassContainer>().gameObject, false);
         DestroyImmediate(FindObjectOfType<MessageManager>().gameObject, false);
+        if (EditorWindow.HasOpenInstances<SceneGraph>())
+            EditorWindow.GetWindow<SceneGraph>().Close();
         CharacterData.DeleteNarrator();
+    }
+    [MenuItem("VN_Engine/Open Scene Structure")]
+    static void OpenSceneGraph()
+    {
+        var window = EditorWindow.GetWindow<SceneGraph>();
+        if (!System.IO.File.Exists(Application.dataPath + "/Stored Data/blockData.json"))
+        {
+            window.FirstTimeInit();
+        }
     }
 
     // Update is called once per frame

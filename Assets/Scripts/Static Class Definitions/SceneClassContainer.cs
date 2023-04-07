@@ -72,6 +72,7 @@ public class SceneClassEditor : Editor
     }
     public override void OnInspectorGUI()
     {
+        /*
         EditorGUILayout.BeginVertical();
         if(GUILayout.Button("Edit Scene Structure"))
         {
@@ -82,6 +83,6 @@ public class SceneClassEditor : Editor
             }
             _obj.SetSceneGraph(sceneGraph);
         }
-        EditorGUILayout.EndVertical();
+        EditorGUILayout.EndVertical();*/
     }
 }
