@@ -495,6 +495,9 @@ namespace UnityEditor
             var posProperty = element.FindPropertyRelative("LocationTo");
             string[] posOptions = { "Left", "Centre", "Right" };
             int selectedPosIndex = posProperty.enumValueIndex;
+            //Hide text box property
+            var hideTextBoxProperty = element.FindPropertyRelative("IsShow");
+            bool hideTextBox = hideTextBoxProperty.boolValue;
 
             Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Space(5);
@@ -512,6 +515,14 @@ namespace UnityEditor
             selectedPosIndex = EditorGUILayout.Popup(selectedPosIndex, posOptions);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(timeProperty);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(hideTextBoxProperty, new GUIContent()
+            {
+                text = "Hide text box?",
+                tooltip = "Hides text box as the character is moving.\n " +
+                "It will only show after another 'SAY' command."
+            });
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
 
             if (boxRectWidth == -1 && boxRect.width != 0)

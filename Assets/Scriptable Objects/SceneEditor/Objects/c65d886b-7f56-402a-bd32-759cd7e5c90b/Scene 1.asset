@@ -22,7 +22,7 @@ MonoBehaviour:
   _path: Assets/Scriptable Objects/SceneEditor/Objects/c65d886b-7f56-402a-bd32-759cd7e5c90b/Scene
     1.asset
   isStart: 1
-  linkedScene: {fileID: 0}
+  linkedScene: {fileID: 11400000, guid: a9fa5e7b05a850b4db452ccb2add7eae, type: 2}
   Commands:
   - type: 3
     dialogueText: 
@@ -46,9 +46,40 @@ MonoBehaviour:
     Time: 0
     IsShow: 0
   - type: 0
-    dialogueText: Nu vii tu sa faci ordine la mine in partid, pitica nenorocita!
+    dialogueText: Nu vii tu sa faci ordine la mine in partid,<punch strength=10>
+      pitica nenorocita!
     Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
     LocationTo: 0
     TransitionType: 0
     Time: 0
     IsShow: 0
+  - type: 2
+    dialogueText: Nu vii tu sa faci ordine la mine in partid,<punch strength=10>
+      pitica nenorocita!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    Time: 1
+    IsShow: 1
+  - type: 0
+    dialogueText: Nii, amu-s pe stanga!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 2
+    TransitionType: 0
+    Time: 1
+    IsShow: 1
+  - type: 2
+    dialogueText: Nu vii tu sa faci ordine la mine in partid,<punch strength=10>
+      pitica nenorocita!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 2
+    TransitionType: 0
+    Time: 1
+    IsShow: 1
+  - type: 0
+    dialogueText: S'amu-s pe dreapta!
+    Character: {fileID: 11400000, guid: fc06649e908f68e47ae6ff28bb8ceaa6, type: 2}
+    LocationTo: 2
+    TransitionType: 0
+    Time: 1
+    IsShow: 1

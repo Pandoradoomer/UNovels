@@ -130,26 +130,6 @@ public class MessageManager : MonoBehaviour
                 }
         }
     }
-    public IEnumerator MoveCharacter(CommandData command)
-    {
-        var key = currentImages.Keys.ToList().FirstOrDefault(x => x == command.Character.characterName);
-        if(key == null)
-        {
-            Debug.LogError($"Character {command.Character.characterName} not currently shown!" +
-                $"Make sure the character you want to move is shown on the screen and hasn't been hidden");
-        }
-
-        Image img = currentImages[key].GetComponent<Image>();
-        Vector3 posFrom = img.rectTransform.anchoredPosition;
-        Vector3 posTo = characterImages[(int)command.LocationTo].GetComponent<Image>().rectTransform.anchoredPosition;
-        Vector3 currPos = posFrom;
-        for(float i = 0; i < command.Time; i += Time.deltaTime)
-        {
-            currPos = Vector3.Lerp(posFrom, posTo, i/command.Time);
-            img.rectTransform.anchoredPosition = currPos;
-            yield return null;
-        }
-    }
     public IEnumerator UnloadScene(SceneEditor scene)
     {
         switch(scene.exitTransition)
@@ -232,6 +212,33 @@ public class MessageManager : MonoBehaviour
             backgroundImage.gameObject.SetActive(false);
     }
 
+    #region Command Parsing
+    public IEnumerator MoveCharacter(CommandData command)
+    {
+        var key = currentImages.Keys.ToList().FirstOrDefault(x => x == command.Character.characterName);
+        if (key == null)
+        {
+            Debug.LogError($"Character {command.Character.characterName} not currently shown!" +
+                $"Make sure the character you want to move is shown on the screen and hasn't been hidden");
+            yield break;
+        }
+        //In this case it means 'Text box should be hidden'
+        if(command.IsShow)
+        {
+            textBox.SetActive(false);
+        }
+        Image img = currentImages[key].GetComponent<Image>();
+        Vector3 posFrom = img.rectTransform.anchoredPosition;
+        Vector3 posTo = characterImages[(int)command.LocationTo].GetComponent<Image>().rectTransform.anchoredPosition;
+        Vector3 currPos = posFrom;
+        for (float i = 0; i < command.Time; i += Time.deltaTime)
+        {
+            currPos = Vector3.Lerp(posFrom, posTo, i / command.Time);
+            img.rectTransform.anchoredPosition = currPos;
+            yield return null;
+        }
+    }
+
     private IEnumerator ShowCharacter(CommandData dialogue)
     {
         if(!dialogue.IsShow)
@@ -303,6 +310,7 @@ public class MessageManager : MonoBehaviour
         waitingForInput = true;
         isMessageRunning = false;
     }
+    #endregion
 
     #region Text Parsing Functions
     IEnumerator WaitForPunctuation(char letter)
