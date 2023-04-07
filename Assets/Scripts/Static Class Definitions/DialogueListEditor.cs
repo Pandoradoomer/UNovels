@@ -238,7 +238,23 @@ namespace UnityEditor
             }, EditorStyles.miniButton))
             {
                 list.arraySize++;
-                SerializedProperty el = list.GetArrayElementAtIndex(list.arraySize - 1);
+                SerializedProperty el;
+                //if there is a highlighted command, add below it
+                if(highlightedIndex != -1)
+                {
+                    for(int i = list.arraySize - 1; i > highlightedIndex + 1; i--)
+                    {
+                        list.MoveArrayElement(i - 1, i);
+                    }
+                    el = list.GetArrayElementAtIndex(highlightedIndex + 1);
+                    highlightedIndex = highlightedIndex + 1;
+                }
+                //else add at the end
+                else
+                {
+                    el = list.GetArrayElementAtIndex(list.arraySize - 1);
+                    highlightedIndex = list.arraySize - 1;
+                }
                 SerializedProperty type = el.FindPropertyRelative("type");
                 type.enumValueIndex = commandIndex;
                 SerializedProperty character = el.FindPropertyRelative("Character");
@@ -275,6 +291,10 @@ namespace UnityEditor
                         highlightedIndex = i;
                     }
                 }
+            }
+            if(e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
+            {
+                highlightedIndex = -1;
             }
         }
 
