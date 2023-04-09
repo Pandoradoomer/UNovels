@@ -557,7 +557,8 @@ namespace UnityEditor
             EditorGUILayout.LabelField("Story text", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            text = EditorGUILayout.TextArea(text, new[]
+            EditorStyles.textArea.wordWrap = true;
+            text = EditorGUILayout.TextArea(text, EditorStyles.textArea, new[]
             {
             GUILayout.MinWidth(20),
             GUILayout.MinHeight(200),
@@ -755,8 +756,6 @@ namespace UnityEditor
             {
                 characters.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(asset), typeof(CharacterData)) as CharacterData);
             }
-            if (name == "<None>")
-                return characters.FirstOrDefault(x => x.characterName == "");
             return characters.FirstOrDefault(x => x.characterName == name);
         }
     }

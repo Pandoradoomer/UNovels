@@ -345,6 +345,7 @@ public class MessageManager : MonoBehaviour
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
+        text += " \u25BC";
         dialogueText.text = text;
         isMessageRunning = true;
         for (int i = 0; i < text.Length; i++)
@@ -355,13 +356,11 @@ public class MessageManager : MonoBehaviour
             if (i >= text.Length)
                 break;
             string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
-            dialogueText.text = splicedText;
+            dialogueText.text = splicedText;  
             if (isMessageRunning)
             {
                 yield return StartCoroutine(WaitForPunctuation(text[i]));
             }
-
-
         }
         waitingForInput = true;
         isMessageRunning = false;
