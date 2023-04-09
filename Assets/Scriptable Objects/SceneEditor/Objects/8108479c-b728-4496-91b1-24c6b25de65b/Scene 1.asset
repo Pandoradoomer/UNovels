@@ -15,44 +15,56 @@ MonoBehaviour:
   _guid: 8108479c-b728-4496-91b1-24c6b25de65b
   SceneName: Scene 1
   entryTransition: 1
-  entryTransitionValue: 0
+  entryTransitionValue: 1.5
   exitTransition: 1
   exitTransitionValue: 0
-  backgroundImage: {fileID: 0}
+  backgroundImage: {fileID: 21300000, guid: 35d2f4321b97e754f845ef012b0bf6fd, type: 3}
   _path: Assets/Scriptable Objects/SceneEditor/Objects/8108479c-b728-4496-91b1-24c6b25de65b/Scene
     1.asset
   isStart: 1
   linkedScene: {fileID: 0}
   Commands:
   - type: 0
-    dialogueText: 
+    dialogueText: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
+      tincidunt dolor sit amet tortor faucibus eleifend. Etiam vitae velit et justo
+      egestas commodo in sit amet tortor. Nulla facilisi. Donec urna ligula, aliquet
+      nec turpis euismod, scelerisque hendrerit dolor. '
     Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
     LocationTo: 0
-    TransitionType: 0
+    TransitionType: 1
     emotion: Default
-    Time: 0
+    Time: 1
     IsShow: 0
   - type: 3
     dialogueText: 
     Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
     LocationTo: 0
-    TransitionType: 0
+    TransitionType: 1
     emotion: Neutral
-    Time: 0
+    Time: 1
     IsShow: 0
-  - type: 2
-    dialogueText: 
+  - type: 0
+    dialogueText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
+      tincidunt dolor sit amet tortor faucibus eleifend. Etiam vitae velit et justo
+      egestas commodo in sit amet tortor. Nulla facilisi. Donec urna ligula, aliquet
+      nec turpis euismod, scelerisque hendrerit dolor. Aliquam erat volutpat. Duis
+      condimentum dolor nunc, ut lobortis leo rutrum a. Phasellus eleifend facilisis
+      sapien nec maximus. Aenean scelerisque faucibus nisl at mollis. Cras fringilla
+      nibh porta dui dictum, vitae sagittis quam tempus. Sed eget cursus leo. Curabitur
+      consequat, urna sed varius venenatis, sem lectus rutrum tellus, sit amet venenatis
+      lectus est ac velit. In id dignissim diam. Integer sagittis metus pulvinar,
+      laoreet elit eget, aliquam tortor.
     Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
     LocationTo: 0
-    TransitionType: 0
+    TransitionType: 1
     emotion: Default
-    Time: 0
+    Time: 1
     IsShow: 0
-  - type: 4
-    dialogueText: 
+  - type: 0
+    dialogueText: Nii?
     Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
     LocationTo: 0
-    TransitionType: 0
-    emotion: Neutral
-    Time: 0
+    TransitionType: 1
+    emotion: Default
+    Time: 1
     IsShow: 0

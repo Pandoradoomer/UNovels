@@ -17,9 +17,13 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI dialogueText;
     [SerializeField]
+    private TextMeshProUGUI narratorText;
+    [SerializeField]
+    private GameObject narratorTextBox;
+    [SerializeField]
     private Canvas canvas;
     [SerializeField]
-    private GameObject textBox;
+    private GameObject characterTextBox;
     [SerializeField]
     private Camera mainCamera;
     [SerializeField]
@@ -31,9 +35,10 @@ public class MessageManager : MonoBehaviour
     List<GameObject> characterImages;
 
     Dictionary<string, GameObject> currentImages;
+    CharacterData charData = null;
 
     bool isMessageRunning = false;
-    private bool isSpeeding = false;
+    bool isAtEndOfLine = false;
     bool waitingForInput = false;
 
     public float speed = 20.0f;
@@ -42,6 +47,8 @@ public class MessageManager : MonoBehaviour
     public float tagWait = -1;
 
     float boxColorAlpha = 0.0f;
+    Vector2 offMaxCharacter;
+    Vector2 offMaxNarrator;
 
     public static MessageManager Instance;
     private void Awake()
@@ -59,8 +66,11 @@ public class MessageManager : MonoBehaviour
     {
         currentImages = new Dictionary<string, GameObject>();
         speed = baseSpeed;
-        boxColorAlpha = textBox.GetComponent<Image>().color.a;
-        textBox.SetActive(false);
+        boxColorAlpha = characterTextBox.GetComponent<Image>().color.a;
+        characterTextBox.SetActive(false);
+        narratorTextBox.SetActive(false);
+        offMaxCharacter = dialogueText.rectTransform.offsetMax;
+        offMaxNarrator = narratorText.rectTransform.offsetMax;
         if(mainCamera == null)
             mainCamera = FindObjectOfType<Camera>();
 
@@ -74,12 +84,25 @@ public class MessageManager : MonoBehaviour
         {
             if (isMessageRunning)
             {
-                isMessageRunning = false;
+                if (!isAtEndOfLine)
+                    isMessageRunning = false;
+                else
+                {
+                    if(!charData.isNarrator)
+                    {
+                        StartCoroutine(MoveCharacterTextBox(2));
+                        isAtEndOfLine = false;
+                    }
+                }
             }
             else
             {
                 if (waitingForInput)
+                {
+                    dialogueText.rectTransform.offsetMax = offMaxCharacter;
+                    speed = baseSpeed;
                     waitingForInput = false;
+                }
             }
         }
     }
@@ -108,7 +131,12 @@ public class MessageManager : MonoBehaviour
         {
             case CommandType.SAY:
                 {
-                    yield return StartCoroutine(DisplayMessage(command));
+                    if(command.Character.isNarrator)
+                    {
+                        yield return StartCoroutine(DisplayMessageNarrator(command));
+                    }
+                    else
+                        yield return StartCoroutine(DisplayMessage(command));
                     while (waitingForInput)
                         yield return null;
                     break;
@@ -148,7 +176,7 @@ public class MessageManager : MonoBehaviour
                         Destroy(currentImages[key]);
                         currentImages.Remove(key);
                     }
-                    textBox.SetActive(false);
+                    characterTextBox.SetActive(false);
                     characterName.text = string.Empty;
                     dialogueText.text = string.Empty;
                     break;
@@ -170,7 +198,7 @@ public class MessageManager : MonoBehaviour
                         Destroy(currentImages[key]);
                         currentImages.Remove(key);
                     }
-                    textBox.SetActive(false);
+                    characterTextBox.SetActive(false);
                     characterName.text = string.Empty;
                     dialogueText.text = string.Empty;
                     break;
@@ -251,7 +279,7 @@ public class MessageManager : MonoBehaviour
         //In this case it means 'Text box should be hidden'
         if(command.IsShow)
         {
-            textBox.SetActive(false);
+            characterTextBox.SetActive(false);
         }
         Image img = currentImages[key].GetComponent<Image>();
         Vector3 posFrom = img.rectTransform.anchoredPosition;
@@ -333,24 +361,103 @@ public class MessageManager : MonoBehaviour
 
         }
     }
+    public IEnumerator DisplayMessageNarrator(CommandData dialogue)
+    {
+        narratorText.color = dialogue.Character.dialogueColor;
+        charData = dialogue.Character;
+
+        if (!narratorTextBox.gameObject.activeInHierarchy)
+            narratorTextBox.SetActive(true);
+        if (characterTextBox.gameObject.activeInHierarchy)
+            characterTextBox.SetActive(true);
+
+        string invisTag = "<alpha=#00>";
+        string text = dialogue.dialogueText;
+        var words = text.Split(' ');
+        int currWordIndex = 0;
+        //narrator text is considered to always be written in paragraphs
+        //narrator text is also expected to consist only of *one* paragraph
+        //therefore it's indented at the beginning
+        text = "\t" + words[0];
+
+        isMessageRunning = true;
+        if (dialogue.IsShow)
+            narratorText.text += "\n";
+        for (int i = 0; i < text.Length; i++)
+        {
+            while (waitingForInput)
+                yield return null;
+            while (ParseTag(ref i, ref text, ref currWordIndex, words)) ;
+            if (tagWait != -1)
+                yield return new WaitForSeconds(tagWait);
+            if (i >= text.Length)
+                break;
+            string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
+            narratorText.text = splicedText;
+            if (isMessageRunning)
+            {
+                yield return StartCoroutine(WaitForPunctuation(text[i]));
+            }
+            if (i == text.Length - 1)
+            {
+                if (currWordIndex < words.Length - 1)
+                {
+                    //add the next word in
+                    currWordIndex++;
+                    if (text[i] != ' ')
+                        text += $" {words[currWordIndex]}";
+                    else
+                        text += words[currWordIndex];
+                    //test if the text would be overflowing with the arrow
+                    narratorText.text = text;
+                    narratorText.text += "\u25BC";
+                    narratorText.ForceMeshUpdate();
+                }
+                if (narratorText.isTextOverflowing)
+                {
+                    text = text.Remove(text.Length - words[currWordIndex].Length);
+                    currWordIndex--;
+                    narratorText.text = text;
+                    narratorText.text += "\u25BC";
+                    waitingForInput = true;
+                    isAtEndOfLine = true;
+                    isMessageRunning = true;
+                }
+                else if (currWordIndex != words.Length - 1)
+                {
+                    narratorText.text = narratorText.text.Remove(narratorText.text.Length - 1);
+                }
+            }
+        }
+        narratorText.text = narratorText.text.Insert(narratorText.text.Length - invisTag.Length, "\u25BC");
+        waitingForInput = true;
+        isAtEndOfLine = false;
+        isMessageRunning = false;
+
+        yield return null;
+    }
     public IEnumerator DisplayMessage(CommandData dialogue)
     {
         characterName.text = dialogue.Character.characterName;
         characterName.color = dialogue.Character.nameColor;
         dialogueText.color = dialogue.Character.dialogueColor;
-
-        if (!textBox.gameObject.activeInHierarchy)
-            textBox.SetActive(true);
-
+        charData = dialogue.Character;
+        if (narratorTextBox.gameObject.activeInHierarchy)
+            narratorTextBox.SetActive(false);
+        if (!characterTextBox.gameObject.activeInHierarchy)
+            characterTextBox.SetActive(true);
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
-        text += " \u25BC";
-        dialogueText.text = text;
+        var words = text.Split(' ');
+        int currWordIndex = 0;
+        text = words[0];
         isMessageRunning = true;
         for (int i = 0; i < text.Length; i++)
         {
-            while (ParseTag(ref i, ref text)) ;
+            while (waitingForInput)
+                yield return null;
+            while (ParseTag(ref i, ref text, ref currWordIndex, words));
             if (tagWait != -1)
                 yield return new WaitForSeconds(tagWait);
             if (i >= text.Length)
@@ -361,9 +468,59 @@ public class MessageManager : MonoBehaviour
             {
                 yield return StartCoroutine(WaitForPunctuation(text[i]));
             }
+            if (i == text.Length - 1)
+            {
+                if (currWordIndex < words.Length - 1)
+                {
+                    //add the next word in
+                    currWordIndex++;
+                    if (text[i] != ' ')
+                        text += $" {words[currWordIndex]}";
+                    else
+                        text += words[currWordIndex];
+                    //test if the text would be overflowing with the arrow
+                    dialogueText.text = text;
+                    dialogueText.text += "\u25BC";
+                    dialogueText.ForceMeshUpdate();
+                }
+                if (dialogueText.isTextOverflowing)
+                {
+                    text = text.Remove(text.Length - words[currWordIndex].Length);
+                    currWordIndex--;
+                    dialogueText.text = text;
+                    dialogueText.text += "\u25BC";
+                    waitingForInput = true;
+                    isAtEndOfLine = true;
+                    isMessageRunning = true;
+                }
+                else if (currWordIndex != words.Length - 1)
+                {
+                    dialogueText.text = dialogueText.text.Remove(dialogueText.text.Length - 1);
+                }
+                else
+                    dialogueText.text += "\u25BC";
+            }
         }
+        dialogueText.text += "\u25BC";
         waitingForInput = true;
+        isAtEndOfLine = false;
         isMessageRunning = false;
+    }
+
+    private IEnumerator MoveCharacterTextBox(int noOfLines)
+    {
+        dialogueText.text = dialogueText.text.Remove(dialogueText.text.Length - 1);
+        Vector2 maxOffset = dialogueText.rectTransform.offsetMax;
+        Vector2 targetOffset = maxOffset + 29f * noOfLines * Vector2.up;
+        float time = 0.5f;
+        for(float i = 0; i < time; i+= Time.deltaTime)
+        {
+            dialogueText.rectTransform.offsetMax = Vector2.Lerp(maxOffset, targetOffset, i / time);
+            yield return null;
+        }
+        dialogueText.rectTransform.offsetMax = targetOffset;
+        waitingForInput = false;
+        yield return null;
     }
     #endregion
 
@@ -392,7 +549,7 @@ public class MessageManager : MonoBehaviour
         }
     }
 
-    bool ParseTag(ref int index, ref string text)
+    bool ParseTag(ref int index, ref string text, ref int currWordIndex, string[] words)
     {
         if (index >= text.Length)
             return false;
@@ -410,6 +567,13 @@ public class MessageManager : MonoBehaviour
             {
                 index -= closingIndex + 1;
                 text = text.Remove(index, closingIndex + 1);
+                if(fullTag == words[currWordIndex])
+                {
+                    currWordIndex++;
+                    if (currWordIndex < words.Length)
+                        text += words[currWordIndex];
+
+                }
                 if (bareTag.Contains("/"))
                 {
                     speed = baseSpeed;
@@ -507,7 +671,7 @@ public class MessageManager : MonoBehaviour
     {
         Vector3 originalPosBG = backgroundImage.transform.position;
         List<Vector3> originalPosImages = currentImages.Values.ToListPooled().Select(x => x.transform.position).ToList();
-        Vector3 originalPosTextbox = textBox.transform.position;
+        Vector3 originalPosTextbox = characterTextBox.transform.position;
         float shakeAmount = strength * 5;
         for (float i = 0; i < time; i += Time.deltaTime)
         {
@@ -519,7 +683,7 @@ public class MessageManager : MonoBehaviour
                 kvp.Value.transform.position = originalPosImages[j] + randPos * shakeAmount;
                 j++;
             }
-            textBox.transform.position = originalPosTextbox + randPos * shakeAmount;
+            characterTextBox.transform.position = originalPosTextbox + randPos * shakeAmount;
             yield return null;
         }
         backgroundImage.transform.position = originalPosBG;
@@ -529,7 +693,7 @@ public class MessageManager : MonoBehaviour
             kvp.Value.transform.position = originalPosImages[k];
             k++;
         }
-        textBox.transform.position = originalPosTextbox;
+        characterTextBox.transform.position = originalPosTextbox;
         tagWait = -1;
     }
 
@@ -540,8 +704,8 @@ public class MessageManager : MonoBehaviour
 
     IEnumerator FadeTextBoxAway(bool isInverted)
     {
-        textBox.SetActive(true);
-        Image textBoxImg = textBox.GetComponent<Image>();
+        characterTextBox.SetActive(true);
+        Image textBoxImg = characterTextBox.GetComponent<Image>();
         Color charColor = characterName.color;
         Color textColor = dialogueText.color;
         Color boxColor = textBoxImg.color;
@@ -568,7 +732,7 @@ public class MessageManager : MonoBehaviour
             yield return null;
         }
         if (isInverted)
-            textBox.SetActive(false);
+            characterTextBox.SetActive(false);
     }
     #endregion
 }
