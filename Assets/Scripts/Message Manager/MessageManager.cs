@@ -543,6 +543,16 @@ public class MessageManager : MonoBehaviour
             narratorTextBox.SetActive(false);
         if (!characterTextBox.gameObject.activeInHierarchy)
             characterTextBox.SetActive(true);
+        if(currentImages.Count > 1)
+        {
+            foreach(var kvp in currentImages)
+            {
+                if (kvp.Key != characterName.text)
+                    kvp.Value.GetComponent<Image>().color = Color.grey;
+            }
+        }
+
+        currentImages[characterName.text].GetComponent<Image>().color = Color.white;
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
