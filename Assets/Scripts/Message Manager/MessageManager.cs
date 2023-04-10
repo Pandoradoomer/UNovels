@@ -19,6 +19,8 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI narratorText;
     [SerializeField]
+    private TextMeshProUGUI hiddenNarratorText;
+    [SerializeField]
     private GameObject narratorTextBox;
     [SerializeField]
     private Canvas canvas;
@@ -35,6 +37,8 @@ public class MessageManager : MonoBehaviour
     List<GameObject> characterImages;
 
     Dictionary<string, GameObject> currentImages;
+    List<string> currentNarratorMessages;
+    int currNarratorMessageIndex = 0;
     CharacterData charData = null;
 
     bool isMessageRunning = false;
@@ -69,6 +73,7 @@ public class MessageManager : MonoBehaviour
         boxColorAlpha = characterTextBox.GetComponent<Image>().color.a;
         characterTextBox.SetActive(false);
         narratorTextBox.SetActive(false);
+        currentNarratorMessages = new List<string>();
         offMaxCharacter = dialogueText.rectTransform.offsetMax;
         offMaxNarrator = narratorText.rectTransform.offsetMax;
         if(mainCamera == null)
@@ -90,16 +95,19 @@ public class MessageManager : MonoBehaviour
                 {
                     if(!charData.isNarrator)
                     {
-                        StartCoroutine(MoveCharacterTextBox(2));
-                        isAtEndOfLine = false;
+                        StartCoroutine(MoveCharacterTextBox(dialogueText, 2));
                     }
+                    else
+                    {
+                        StartCoroutine(MoveCharacterTextBox(narratorText, hiddenNarratorText.textInfo.lineCount));
+                    }
+                    isAtEndOfLine = false;
                 }
             }
             else
             {
                 if (waitingForInput)
                 {
-                    dialogueText.rectTransform.offsetMax = offMaxCharacter;
                     speed = baseSpeed;
                     waitingForInput = false;
                 }
@@ -139,6 +147,9 @@ public class MessageManager : MonoBehaviour
                         yield return StartCoroutine(DisplayMessage(command));
                     while (waitingForInput)
                         yield return null;
+                    yield return StartCoroutine(HideMessageBox(command));
+                    dialogueText.rectTransform.offsetMax = offMaxCharacter;
+                    narratorText.rectTransform.offsetMax = offMaxNarrator;
                     break;
                 }
             case CommandType.SHOW:
@@ -361,6 +372,66 @@ public class MessageManager : MonoBehaviour
 
         }
     }
+    public IEnumerator HideMessageBox(CommandData dialogue)
+    {
+        //if 'Hide' is ticked
+        if (dialogue.IsShow)
+        {
+            switch(dialogue.TransitionType)
+            {
+                case TransitionTypes.NONE:
+                    {
+                        yield return StartCoroutine(HideTextBox(dialogue.Character.isNarrator, 0));
+                        break;
+                    }
+                case TransitionTypes.FADE:
+                    {
+                        yield return StartCoroutine(HideTextBox(dialogue.Character.isNarrator, dialogue.Time));
+                        break;
+                    }
+                case TransitionTypes.PUNCH:
+                    {
+                        break;
+                    }
+            }
+        }
+        else
+            yield break;
+        yield return null;
+    }
+
+    public IEnumerator HideTextBox(bool isNarrator, float time)
+    {
+        Image currTextBox = null;
+        TextMeshProUGUI currText = null;
+        if(isNarrator)
+        {
+            currTextBox = narratorTextBox.GetComponent<Image>();
+            currText = narratorText;
+        }
+        else
+        {
+            currTextBox = characterTextBox.GetComponent<Image>();
+            currText = dialogueText;
+        }
+
+        Color textBoxBGColor = currTextBox.color;
+        float textBoxBGInitialAlpha = textBoxBGColor.a;
+        Color textColor = currText.color;
+
+        for(float i = 0; i <= time; i+= Time.deltaTime)
+        {
+            textBoxBGColor.a = Mathf.Lerp(0, 1, (time - i) / time);
+            textColor.a = Mathf.Lerp(0, 1, (time - i) / time);
+            currTextBox.color = textBoxBGColor;
+            currText.color = textColor;
+            yield return null;
+        }
+        currText.text = "";
+        currTextBox.gameObject.SetActive(false);
+        textBoxBGColor.a = textBoxBGInitialAlpha;
+        currTextBox.color = textBoxBGColor;
+    }
     public IEnumerator DisplayMessageNarrator(CommandData dialogue)
     {
         narratorText.color = dialogue.Character.dialogueColor;
@@ -381,8 +452,29 @@ public class MessageManager : MonoBehaviour
         text = "\t" + words[0];
 
         isMessageRunning = true;
-        if (dialogue.IsShow)
-            narratorText.text += "\n";
+        string initialText = narratorText.text;
+        if (!dialogue.Refresh)
+        {
+            if (initialText != "")
+            {
+                initialText = initialText.Remove(initialText.Length - invisTag.Length - 2);
+                initialText += "\n";
+            }
+            else
+            {
+                hiddenNarratorText.text = dialogue.dialogueText;
+                hiddenNarratorText.ForceMeshUpdate();
+            }
+        }
+        else
+        {
+            initialText = "";
+            currentNarratorMessages.Clear();
+            currNarratorMessageIndex = 0;
+            hiddenNarratorText.text = dialogue.dialogueText;
+            hiddenNarratorText.ForceMeshUpdate();
+        }
+        currentNarratorMessages.Add(dialogue.dialogueText);
         for (int i = 0; i < text.Length; i++)
         {
             while (waitingForInput)
@@ -393,7 +485,12 @@ public class MessageManager : MonoBehaviour
             if (i >= text.Length)
                 break;
             string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
-            narratorText.text = splicedText;
+            if(dialogue.Refresh)
+                narratorText.text = splicedText;
+            else
+            {
+                narratorText.text = initialText + splicedText;
+            }
             if (isMessageRunning)
             {
                 yield return StartCoroutine(WaitForPunctuation(text[i]));
@@ -409,7 +506,7 @@ public class MessageManager : MonoBehaviour
                     else
                         text += words[currWordIndex];
                     //test if the text would be overflowing with the arrow
-                    narratorText.text = text;
+                    narratorText.text = initialText + text;
                     narratorText.text += "\u25BC";
                     narratorText.ForceMeshUpdate();
                 }
@@ -417,7 +514,7 @@ public class MessageManager : MonoBehaviour
                 {
                     text = text.Remove(text.Length - words[currWordIndex].Length);
                     currWordIndex--;
-                    narratorText.text = text;
+                    narratorText.text = initialText + text;
                     narratorText.text += "\u25BC";
                     waitingForInput = true;
                     isAtEndOfLine = true;
@@ -507,18 +604,24 @@ public class MessageManager : MonoBehaviour
         isMessageRunning = false;
     }
 
-    private IEnumerator MoveCharacterTextBox(int noOfLines)
+    private IEnumerator MoveCharacterTextBox(TextMeshProUGUI textBox, int noOfLines)
     {
-        dialogueText.text = dialogueText.text.Remove(dialogueText.text.Length - 1);
-        Vector2 maxOffset = dialogueText.rectTransform.offsetMax;
+        textBox.text = textBox.text.Remove(textBox.text.Length - 1);
+        Vector2 maxOffset = textBox.rectTransform.offsetMax;
         Vector2 targetOffset = maxOffset + 29f * noOfLines * Vector2.up;
         float time = 0.5f;
         for(float i = 0; i < time; i+= Time.deltaTime)
         {
-            dialogueText.rectTransform.offsetMax = Vector2.Lerp(maxOffset, targetOffset, i / time);
+            textBox.rectTransform.offsetMax = Vector2.Lerp(maxOffset, targetOffset, i / time);
             yield return null;
         }
-        dialogueText.rectTransform.offsetMax = targetOffset;
+        textBox.rectTransform.offsetMax = targetOffset;
+        //if we moved up the narrator's text box, update the first displayed paragraph
+        if(textBox == narratorText)
+        {
+            currNarratorMessageIndex++;
+            hiddenNarratorText.text = currentNarratorMessages[currNarratorMessageIndex];
+        }
         waitingForInput = false;
         yield return null;
     }
@@ -662,7 +765,6 @@ public class MessageManager : MonoBehaviour
                     return true;
                 }
             }
-            //currentText += fullTag;
             return true;
         }
         return false;
@@ -672,6 +774,7 @@ public class MessageManager : MonoBehaviour
         Vector3 originalPosBG = backgroundImage.transform.position;
         List<Vector3> originalPosImages = currentImages.Values.ToListPooled().Select(x => x.transform.position).ToList();
         Vector3 originalPosTextbox = characterTextBox.transform.position;
+        Vector3 originalNarratorPos = narratorTextBox.transform.position;
         float shakeAmount = strength * 5;
         for (float i = 0; i < time; i += Time.deltaTime)
         {
@@ -684,6 +787,7 @@ public class MessageManager : MonoBehaviour
                 j++;
             }
             characterTextBox.transform.position = originalPosTextbox + randPos * shakeAmount;
+            narratorTextBox.transform.position = originalNarratorPos + randPos * shakeAmount;
             yield return null;
         }
         backgroundImage.transform.position = originalPosBG;
@@ -694,6 +798,7 @@ public class MessageManager : MonoBehaviour
             k++;
         }
         characterTextBox.transform.position = originalPosTextbox;
+        narratorTextBox.transform.position = originalNarratorPos;
         tagWait = -1;
     }
 
@@ -736,321 +841,3 @@ public class MessageManager : MonoBehaviour
     }
     #endregion
 }
-
-/*
-public class DialogueManager : MonoBehaviour
-{
-    [SerializeField]
-    private TextMeshProUGUI characterName;
-    [SerializeField]
-    private TextMeshProUGUI dialogueText;
-    [SerializeField]
-    private Image backgroundBlur;
-    [SerializeField]
-    private Image characterImage;
-    [SerializeField]
-    private GameObject textBox;
-    [SerializeField]
-    private Camera mainCamera;
-    [SerializeField]
-    private Canvas canvas;
-
-    bool isMessageRunning = false;
-    private bool isSpeeding = false;
-    bool waitingForInput = false;
-
-    public float speed = 20.0f;
-    public float baseSpeed = 20.0f;
-    public string currentText = "";
-    public float tagWait = -1;
-
-    float boxColorAlpha = 0.0f;
-    void Start()
-    {
-        boxColorAlpha = textBox.GetComponent<Image>().color.a;
-    }
-
-    private void OnDestroy()
-    {
-
-    }
-
-    IEnumerator BeginDialogueSequence(DialogueSequenceData sequence)
-    {
-        isMessageRunning = false;
-        currSequence = sequence;
-        characterImage.sprite = sequence.dialogueSequence[0].characterData.characterImage;
-        StartCoroutine(BlurBackground(false));
-        yield return StartCoroutine(FadeAndSlideCharacter(false));
-        yield return StartCoroutine(StartMessageSequence(sequence.dialogueSequence));
-        StartCoroutine(BlurBackground(true));
-        StartCoroutine(FadeTextBoxAway(true));
-        yield return StartCoroutine(FadeAndSlideCharacter(true));
-        yield return null;
-    }
-    IEnumerator StartMessageSequence(List<DialogueData> sequence)
-    {
-        textBox.SetActive(true);
-        characterName.gameObject.SetActive(true);
-        dialogueText.gameObject.SetActive(true);
-        for (int i = 0; i < sequence.Count; i++)
-        {
-            yield return StartCoroutine(DisplayMessage(sequence[i]));
-            waitingForInput = true;
-            while (waitingForInput)
-            {
-                yield return null;
-            }
-            //On 4th message enable keypress
-            //User must select at least one of the weapons to enter the dungeon
-        }
-    }
-
-    IEnumerator FadeTextBoxAway(bool isInverted)
-    {
-        textBox.SetActive(true);
-        Image textBoxImg = textBox.GetComponent<Image>();
-        Color charColor = characterName.color;
-        Color textColor = dialogueText.color;
-        Color boxColor = textBoxImg.color;
-        float dur = 0.75f;
-        for (float i = 0; i <= dur; i += Time.deltaTime)
-        {
-            if (isInverted)
-            {
-                charColor.a = Mathf.Lerp(0, 1, (dur - i) / dur);
-                textColor.a = Mathf.Lerp(0, 1, (dur - i) / dur);
-                boxColor.a = Mathf.Lerp(0, boxColorAlpha, (dur - i) / dur);
-            }
-            else
-            {
-
-                charColor.a = Mathf.Lerp(0, 1, i / dur);
-                textColor.a = Mathf.Lerp(0, 1, i / dur);
-                boxColor.a = Mathf.Lerp(0, boxColorAlpha, i / dur);
-            }
-
-            characterName.color = charColor;
-            dialogueText.color = textColor;
-            textBoxImg.color = boxColor;
-            yield return null;
-        }
-        if (isInverted)
-            textBox.SetActive(false);
-    }
-    IEnumerator DisplayMessage(DialogueData dialogue)
-    {
-        characterName.text = dialogue.characterData.characterName;
-        characterName.color = dialogue.characterData.nameColor;
-        dialogueText.color = dialogue.characterData.dialogueColor;
-
-        string invisTag = "<alpha=#00>";
-        string text = dialogue.dialogueText;
-        ParseVariables(ref text);
-        dialogueText.text = text;
-        isMessageRunning = true;
-        for (int i = 0; i < text.Length; i++)
-        {
-            while (ParseTag(ref i, ref text)) ;
-            if (tagWait != -1)
-                yield return new WaitForSeconds(tagWait);
-            string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
-            dialogueText.text = splicedText;
-            if (isMessageRunning)
-            {
-                yield return StartCoroutine(WaitForPunctuation(text[i]));
-            }
-
-        }
-        isMessageRunning = false;
-    }
-
-    void ParseVariables(ref string text)
-    {
-        while (text.Contains("["))
-        {
-            int indexStart = text.IndexOf("[");
-            int indexFinish = text.IndexOf("]");
-            string bareVariable = text.Substring(indexStart + 1, indexFinish - indexStart - 1);
-            text = text.Remove(indexStart, indexFinish - indexStart);
-            text = text.Substring(0, indexStart) + QueryPlayerStatsForVariable(bareVariable) + text.Substring(indexStart + 1);
-        }
-    }
-
-    string QueryPlayerStatsForVariable(string variable)
-    {
-        if (PlayerPrefs.HasKey(variable.ToString()))
-        {
-            return PlayerPrefs.GetInt(variable.ToString()).ToString();
-        }
-        return "0";
-    }
-    bool ParseTag(ref int index, ref string text)
-    {
-        if (text[index] == '<')
-        {
-            string fullTag = text.Substring(index);
-            int closingIndex = fullTag.IndexOf('>');
-            index += closingIndex + 1;
-            fullTag = fullTag.Substring(0, closingIndex + 1);
-
-            //at this point dupl has the full tag, complete with <>
-            string bareTag = fullTag.Substring(1, fullTag.Length - 2);
-
-            if (bareTag.Contains("speed"))
-            {
-                index -= closingIndex + 1;
-                text = text.Remove(index, closingIndex + 1);
-                if (bareTag.Contains("/"))
-                {
-                    speed = baseSpeed;
-                    return true;
-                }
-                int equalIndex = bareTag.IndexOf("=");
-                //in case the tag is just 'speed', return
-                if (equalIndex == -1)
-                {
-                    return true;
-                }
-                //in case the tag is just 'speed=' also return
-                if (equalIndex == bareTag.Length - 1)
-                {
-                    return true;
-                }
-                float val;
-                try
-                {
-                    val = float.Parse(bareTag.Substring(equalIndex + 1));
-                    speed = val;
-                    return true;
-
-                }
-                catch (Exception e)
-                {
-                    return true;
-                }
-
-            }
-            else if (bareTag.Contains("punch"))
-            {
-                index -= closingIndex + 1;
-                text = text.Remove(index, closingIndex + 1);
-                StartCoroutine(Punch());
-                tagWait = 0.5f;
-                return true;
-            }
-            //currentText += fullTag;
-            return true;
-        }
-        return false;
-    }
-
-    IEnumerator WaitForPunctuation(char letter)
-    {
-        switch (letter)
-        {
-            case '!':
-            case '?':
-            case '.':
-                {
-                    yield return new WaitForSeconds(7.5f / speed);
-                    break;
-                }
-            case ',':
-                {
-                    yield return new WaitForSeconds(3.5f / speed);
-                    break;
-                }
-            default:
-                {
-                    yield return new WaitForSeconds(1.0f / speed);
-                    break;
-                }
-        }
-    }
-    IEnumerator Punch()
-    {
-        Vector3 originalPosCam = mainCamera.transform.position;
-        Vector3 originalPosImage = characterImage.transform.position;
-        Vector3 originalPosTextbox = textBox.transform.position;
-        float shakeAmount = 0.7f;
-        for (float i = 0; i < 0.5f; i += Time.deltaTime)
-        {
-            Vector3 randPos = UnityEngine.Random.insideUnitSphere;
-            mainCamera.transform.position = originalPosCam + randPos * shakeAmount;
-            characterImage.transform.position = originalPosImage + randPos * shakeAmount;
-            textBox.transform.position = originalPosTextbox + randPos * shakeAmount;
-            yield return null;
-        }
-        mainCamera.transform.position = originalPosCam;
-        characterImage.transform.position = originalPosImage;
-        textBox.transform.position = originalPosTextbox;
-        tagWait = -1;
-    }
-    IEnumerator FadeAndSlideCharacter(bool isInverted)
-    {
-        characterImage.gameObject.SetActive(true);
-        Color c = new Color(1, 1, 1, 0);
-
-        float shiftValue = 10.0f;
-        //the image is now transparent and shifted;
-        characterImage.color = c;
-        characterImage.rectTransform.anchoredPosition += Vector2.left * shiftValue;
-
-        Vector2 initialPos = characterImage.rectTransform.anchoredPosition;
-        for (float i = 0; i < 0.75f; i += Time.deltaTime)
-        {
-            if (!isInverted)
-                c.a = Mathf.Lerp(0.0f, 1.0f, i / 0.75f);
-            else
-                c.a = Mathf.Lerp(0.0f, 1.0f, (0.75f - i) / 0.75f);
-            characterImage.color = c;
-            if (!isInverted)
-                characterImage.rectTransform.anchoredPosition =
-                Vector2.Lerp(initialPos, initialPos + Vector2.right * shiftValue, i / 0.75f);
-            else
-                characterImage.rectTransform.anchoredPosition =
-                Vector2.Lerp(initialPos, initialPos + Vector2.right * shiftValue, (0.75f - i) / 0.75f);
-
-            yield return null;
-        }
-        if (isInverted)
-            characterImage.gameObject.SetActive(false);
-        yield return null;
-    }
-    IEnumerator BlurBackground(bool isInverted)
-    {
-        backgroundBlur.gameObject.SetActive(true);
-        Color c = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-        for (float i = 0; i <= 0.75f; i += Time.deltaTime)
-        {
-            if (!isInverted)
-                c.a = Mathf.Lerp(0.0f, 0.4f, i / 0.75f);
-            else
-                c.a = Mathf.Lerp(0.0f, 0.4f, (0.75f - i) / 0.75f);
-            backgroundBlur.color = c;
-            yield return null;
-        }
-        if (isInverted)
-            backgroundBlur.gameObject.SetActive(false);
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (isMessageRunning)
-            {
-                isMessageRunning = false;
-            }
-            else
-            {
-                if (waitingForInput)
-                    waitingForInput = false;
-            }
-        }
-    }
-
-
-}
-*/

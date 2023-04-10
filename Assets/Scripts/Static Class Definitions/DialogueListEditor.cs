@@ -542,6 +542,19 @@ namespace UnityEditor
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedIndex = characterNames.IndexOf(selectedCharacterName);
 
+            var isShowProperty = dialogue.FindPropertyRelative("IsShow");
+            bool isShow = isShowProperty.boolValue;
+
+            var refreshProperty = dialogue.FindPropertyRelative("Refresh");
+            bool refresh = refreshProperty.boolValue;
+
+            var transProperty = dialogue.FindPropertyRelative("TransitionType");
+            string[] transOptions = Enum.GetNames(typeof(TransitionTypes)).ToArray();
+            int selectedTransIndex = transProperty.enumValueIndex;
+
+            var timeProperty = dialogue.FindPropertyRelative("Time");
+            float time = timeProperty.floatValue;
+
             Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Space(5);
             EditorGUILayout.LabelField(new GUIContent()
@@ -566,6 +579,45 @@ namespace UnityEditor
         });
             GUILayout.Space(5);
             EditorGUILayout.EndHorizontal();
+            //if the selected character is not the narrator, 'refresh' is implied
+            if(selectedCharacterName == "Narrator")
+            {
+
+                EditorGUILayout.PropertyField(refreshProperty, new GUIContent()
+                {
+                    text = "Refresh text box?",
+                    tooltip = "If the box is ticked, the narrator text box is cleared prior to this message being shown"
+                });
+            }
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(isShowProperty, new GUIContent()
+            {
+                text = "Hide text box?",
+                tooltip = "If ticked, hides text box after the text is finished."
+            });
+            EditorGUILayout.EndHorizontal();
+            GUI.enabled = isShow;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Hide transition", GUILayout.Width(160));
+            selectedTransIndex = EditorGUILayout.Popup(selectedTransIndex, transOptions);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            if (transOptions[selectedTransIndex] != "NONE")
+            {
+                if (transOptions[selectedTransIndex] == "FADE")
+                    EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                    {
+                        text = "Fade time",
+                        tooltip = "Over how many seconds does the textbox fade away."
+                    });
+                else
+                    EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                    {
+                        text = "Punch strength",
+                        tooltip = "How strong the camera shake should be. Recommended value: 10."
+                    });
+            }
+            EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
             EditorGUILayout.EndVertical();
             if (boxRectWidth == -1 && boxRect.width != 0)
@@ -573,6 +625,7 @@ namespace UnityEditor
                 boxRectWidth = boxRect.width;
             }
 
+            transProperty.enumValueIndex = selectedTransIndex;
             characterProperty.objectReferenceValue = GetCharacterByName(options[selectedIndex]);
             dialogueText.stringValue = text;
         }

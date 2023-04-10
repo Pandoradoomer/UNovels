@@ -35,6 +35,42 @@ MonoBehaviour:
     emotion: Default
     Time: 1
     IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: 'Cras laoreet orci sit amet sem lacinia, a venenatis risus sodales.
+      Vivamus scelerisque tristique velit eu ornare. Aenean faucibus suscipit elit
+      ac rhoncus. Fusce gravida, quam feugiat consectetur tempor, est erat tincidunt
+      ipsum, in ultricies nibh velit et felis. '
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 1
+    emotion: Default
+    Time: 1
+    IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: Donec quis tortor in velit condimentum lobortis convallis iaculis
+      nunc. Integer mollis justo porta nisl pulvinar ultrices. Sed viverra mi a mauris
+      blandit elementum. Praesent sit amet ante dui.
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 1
+    emotion: Default
+    Time: 1
+    IsShow: 1
+    Refresh: 0
+  - type: 0
+    dialogueText: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
+      tincidunt dolor sit amet tortor faucibus eleifend. Etiam vitae velit et justo
+      egestas commodo in sit amet tortor. Nulla facilisi. Donec urna ligula, aliquet
+      nec turpis euismod, scelerisque hendrerit dolor. '
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 1
+    IsShow: 1
+    Refresh: 0
   - type: 3
     dialogueText: 
     Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
@@ -43,6 +79,7 @@ MonoBehaviour:
     emotion: Neutral
     Time: 1
     IsShow: 0
+    Refresh: 0
   - type: 0
     dialogueText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
       tincidunt dolor sit amet tortor faucibus eleifend. Etiam vitae velit et justo
@@ -60,6 +97,7 @@ MonoBehaviour:
     emotion: Default
     Time: 1
     IsShow: 0
+    Refresh: 0
   - type: 0
     dialogueText: Nii?
     Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
@@ -68,3 +106,4 @@ MonoBehaviour:
     emotion: Default
     Time: 1
     IsShow: 0
+    Refresh: 0
