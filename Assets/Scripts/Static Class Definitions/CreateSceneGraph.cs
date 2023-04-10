@@ -36,6 +36,7 @@ public class CreateSceneGraph : MonoBehaviour
         sceneGo.name = sceneGo.name.Replace("(Clone)","");
         messageManagerGo.name = messageManagerGo.name.Replace("(Clone)", "");
         CharacterData.CreateNarrator();
+        UserSettings.CreateUserSettings();
     }
     [MenuItem("VN_Engine/Reset")]
     [ExecuteInEditMode]
@@ -47,6 +48,7 @@ public class CreateSceneGraph : MonoBehaviour
         if (EditorWindow.HasOpenInstances<SceneGraph>())
             EditorWindow.GetWindow<SceneGraph>().Close();
         CharacterData.DeleteNarrator();
+        UserSettings.DeleteUserSettings();
         BlockFactory.HardReset();
     }
     [MenuItem("VN_Engine/Open Scene Structure")]
@@ -57,6 +59,13 @@ public class CreateSceneGraph : MonoBehaviour
         {
             window.FirstTimeInit();
         }
+    }
+    [MenuItem("VN_Engine/Open User Settings")]
+    static void OpenUserSettings()
+    {
+        ActiveEditorTracker.sharedTracker.isLocked = false;
+        AssetDatabase.OpenAsset(AssetDatabase.LoadAssetAtPath("Assets/Scriptable Objects/User Settings/Objects/_UserSettings.asset", typeof(UserSettings)));
+        ActiveEditorTracker.sharedTracker.isLocked = true;
     }
 
     // Update is called once per frame

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
+  m_Name: Scene 1
+  m_EditorClassIdentifier: 
+  _guid: 909aadf6-c626-4f07-b540-497a8d99b6df
+  SceneName: Scene 1
+  entryTransition: 1
+  entryTransitionValue: 0
+  exitTransition: 1
+  exitTransitionValue: 0
+  backgroundImage: {fileID: 0}
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/909aadf6-c626-4f07-b540-497a8d99b6df/Scene
+    1.asset
+  isStart: 1
+  linkedScene: {fileID: 0}
+  Commands:
+  - type: 3
+    dialogueText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
+      lacinia dapibus ante, non eleifend sapien vehicula quis. Aliquam in posuere
+      nibh. Maecenas sit amet aliquam neque. Vivamus id enim purus. Praesent orci
+      tortor, luctus vel lorem nec, malesuada sollicitudin quam. In imperdiet laoreet
+      pulvinar. Nunc sed nibh ac sem euismod elementum ac in elit. Vestibulum eu
+      lectus tincidunt, porta ipsum a, blandit metus. Pellentesque vitae semper ex.
+      Sed ut luctus sapien. Vivamus mattis commodo neque vitae pharetra. Donec iaculis
+      non urna et aliquam. Ut rhoncus dui a ante convallis, sollicitudin congue felis
+      tristique.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 1
+    TransitionType: 0
+    emotion: Neutral
+    Time: 0
+    IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
+      lacinia dapibus ante, non eleifend sapien vehicula quis. Aliquam in posuere
+      nibh. Maecenas sit amet aliquam neque. Vivamus id enim purus. Praesent orci
+      tortor, luctus vel lorem nec, malesuada sollicitudin quam. In imperdiet laoreet
+      pulvinar. Nunc sed nibh ac sem euismod elementum ac in elit. Vestibulum eu
+      lectus tincidunt, porta ipsum a, blandit metus. Pellentesque vitae semper ex.
+      Sed ut luctus sapien. Vivamus mattis commodo neque vitae pharetra. Donec iaculis
+      non urna et aliquam. Ut rhoncus dui a ante convallis, sollicitudin congue felis
+      tristique.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 0
+    IsShow: 0
+    Refresh: 0

@@ -54,6 +54,8 @@ public class MessageManager : MonoBehaviour
     Vector2 offMaxCharacter;
     Vector2 offMaxNarrator;
 
+    private int maxDialogueLines = -1;
+
     public static MessageManager Instance;
     private void Awake()
     {
@@ -68,6 +70,7 @@ public class MessageManager : MonoBehaviour
     }
     void Start()
     {
+        SetUserSettings();
         currentImages = new Dictionary<string, GameObject>();
         speed = baseSpeed;
         boxColorAlpha = characterTextBox.GetComponent<Image>().color.a;
@@ -81,6 +84,22 @@ public class MessageManager : MonoBehaviour
 
     }
 
+    void SetUserSettings()
+    {
+        UserSettings settings = SceneManager.Instance.userSettings;
+        if(settings != null)
+        {
+            characterTextBox.GetComponent<Image>().color = settings.TextBoxColor;
+            narratorTextBox.GetComponent<Image>().color = settings.TextBoxColor;
+            characterName.fontSize = settings.CharacterNameFontSize;
+            narratorText.fontSize = dialogueText.fontSize = settings.DialogueFontSize;
+            characterTextBox.GetComponent<RectTransform>().anchoredPosition = settings.CharacterTextBoxPosition;
+            narratorTextBox.GetComponent<RectTransform>().anchoredPosition = settings.NarratorTextBoxPosition;
+            characterTextBox.GetComponent<RectTransform>().sizeDelta = settings.CharacterTextBoxSize;
+            narratorTextBox.GetComponent<RectTransform>().sizeDelta = settings.NarratorTextBoxPosition;
+        }
+
+    }
 
     // Update is called once per frame
     void Update()
@@ -95,11 +114,11 @@ public class MessageManager : MonoBehaviour
                 {
                     if(!charData.isNarrator)
                     {
-                        StartCoroutine(MoveCharacterTextBox(dialogueText, 2));
+                        StartCoroutine(MoveCharacterTextBox(dialogueText));
                     }
                     else
                     {
-                        StartCoroutine(MoveCharacterTextBox(narratorText, hiddenNarratorText.textInfo.lineCount));
+                        StartCoroutine(MoveCharacterTextBox(narratorText));
                     }
                     isAtEndOfLine = false;
                 }
@@ -614,11 +633,25 @@ public class MessageManager : MonoBehaviour
         isMessageRunning = false;
     }
 
-    private IEnumerator MoveCharacterTextBox(TextMeshProUGUI textBox, int noOfLines)
+    private IEnumerator MoveCharacterTextBox(TextMeshProUGUI textBox)
     {
         textBox.text = textBox.text.Remove(textBox.text.Length - 1);
         Vector2 maxOffset = textBox.rectTransform.offsetMax;
-        Vector2 targetOffset = maxOffset + 29f * noOfLines * Vector2.up;
+        float size = textBox.textInfo.lineInfo[0].ascender - textBox.textInfo.lineInfo[0].descender;
+        int noOfLines = -1;
+        if(textBox == narratorText)
+            noOfLines = hiddenNarratorText.textInfo.lineCount;
+        else
+        {
+            if (maxDialogueLines == -1)
+            {
+                maxDialogueLines = textBox.textInfo.lineCount;
+                noOfLines = maxDialogueLines - 1;
+            }
+            else
+                noOfLines = maxDialogueLines - 1;
+        }
+        Vector2 targetOffset = maxOffset + size * noOfLines * Vector2.up;
         float time = 0.5f;
         for(float i = 0; i < time; i+= Time.deltaTime)
         {

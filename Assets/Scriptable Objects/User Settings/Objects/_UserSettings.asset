@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1112678cc9e6184fa4fb3eb2d363381, type: 3}
+  m_Name: _UserSettings
+  m_EditorClassIdentifier: 
+  TextBoxColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 0.6666667}
+  DialogueFontSize: 22
+  CharacterNameFontSize: 18
+  CharacterTextBoxSize: {x: 700, y: 130}
+  CharacterTextBoxPosition: {x: 0, y: -140}
+  NarratorTextBoxSize: {x: 700, y: 400}
+  NarratorTextBoxPosition: {x: 0, y: 0}
+  ShowNarratorTextBox: 0
+  ShowCharacterTextBox: 0
+  camera: {fileID: 0}
+  canvas: {fileID: 0}
