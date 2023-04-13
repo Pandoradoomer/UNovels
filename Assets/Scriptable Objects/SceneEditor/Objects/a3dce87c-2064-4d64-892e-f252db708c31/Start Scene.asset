@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
+  m_Name: Start Scene
+  m_EditorClassIdentifier: 
+  _guid: a3dce87c-2064-4d64-892e-f252db708c31
+  SceneName: Start Scene
+  entryTransition: 1
+  entryTransitionValue: 1.5
+  exitTransition: 1
+  exitTransitionValue: 1
+  backgroundImage: {fileID: 0}
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/a3dce87c-2064-4d64-892e-f252db708c31/Start
+    Scene.asset
+  isStart: 1
+  linkedScene: {fileID: 11400000, guid: c6a0adc5c9de59a428f7ad760cd53037, type: 2}
+  Commands:
+  - type: 0
+    dialogueText: <b><i>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Cras et sem id elit accumsan rhoncus ut congue mi. Fusce varius sodales enim,
+      et hendrerit dolor ornare a. Nunc scelerisque malesuada fringilla. Etiam mattis
+      imperdiet luctus. Nam dignissim quis quam a aliquet. Ut quis diam maximus,
+      facilisis nisi ac, suscipit sapien.
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 0
+    IsShow: 0
+    Refresh: 0

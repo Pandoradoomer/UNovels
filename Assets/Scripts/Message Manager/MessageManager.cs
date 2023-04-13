@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -96,7 +97,7 @@ public class MessageManager : MonoBehaviour
             characterTextBox.GetComponent<RectTransform>().anchoredPosition = settings.CharacterTextBoxPosition;
             narratorTextBox.GetComponent<RectTransform>().anchoredPosition = settings.NarratorTextBoxPosition;
             characterTextBox.GetComponent<RectTransform>().sizeDelta = settings.CharacterTextBoxSize;
-            narratorTextBox.GetComponent<RectTransform>().sizeDelta = settings.NarratorTextBoxPosition;
+            narratorTextBox.GetComponent<RectTransform>().sizeDelta = settings.NarratorTextBoxSize;
         }
 
     }
@@ -114,11 +115,11 @@ public class MessageManager : MonoBehaviour
                 {
                     if(!charData.isNarrator)
                     {
-                        StartCoroutine(MoveCharacterTextBox(dialogueText));
+                        StartCoroutine(ScrollTextBox(dialogueText));
                     }
                     else
                     {
-                        StartCoroutine(MoveCharacterTextBox(narratorText));
+                        StartCoroutine(ScrollTextBox(narratorText));
                     }
                     isAtEndOfLine = false;
                 }
@@ -163,7 +164,7 @@ public class MessageManager : MonoBehaviour
                         yield return StartCoroutine(DisplayMessageNarrator(command));
                     }
                     else
-                        yield return StartCoroutine(DisplayMessage(command));
+                        yield return StartCoroutine(DisplayMessageCharacter(command));
                     while (waitingForInput)
                         yield return null;
                     yield return StartCoroutine(HideMessageBox(command));
@@ -418,7 +419,6 @@ public class MessageManager : MonoBehaviour
             yield break;
         yield return null;
     }
-
     public IEnumerator HideTextBox(bool isNarrator, float time)
     {
         Image currTextBox = null;
@@ -463,21 +463,26 @@ public class MessageManager : MonoBehaviour
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
+        //Extract custom tags from the text and leave the rich text ones intact
+        List<Tag> tags = ParseTextTags(ref text);
+        int currTagIndex = -1;
+        if (tags.Count > 0)
+            currTagIndex = 0;
+        
         var words = text.Split(' ');
         int currWordIndex = 0;
-        //narrator text is considered to always be written in paragraphs
-        //narrator text is also expected to consist only of *one* paragraph
-        //therefore it's indented at the beginning
-        text = "\t" + words[0];
+        text = words[0];
 
         isMessageRunning = true;
         string initialText = narratorText.text;
+        //Narrator text is always considered to be paragraphs, so it's auto-indented
         if (!dialogue.Refresh)
         {
-            if (initialText != "")
+            //the narrator text box always reinitialises to an empty tab
+            if (initialText != "\t")
             {
                 initialText = initialText.Remove(initialText.Length - invisTag.Length - 2);
-                initialText += "\n";
+                initialText += "\n\t";
             }
             else
             {
@@ -487,18 +492,23 @@ public class MessageManager : MonoBehaviour
         }
         else
         {
-            initialText = "";
+            initialText = "\t";
             currentNarratorMessages.Clear();
             currNarratorMessageIndex = 0;
             hiddenNarratorText.text = dialogue.dialogueText;
             hiddenNarratorText.ForceMeshUpdate();
         }
         currentNarratorMessages.Add(dialogue.dialogueText);
+
         for (int i = 0; i < text.Length; i++)
         {
             while (waitingForInput)
                 yield return null;
-            while (ParseTag(ref i, ref text, ref currWordIndex, words)) ;
+            if (currTagIndex != -1)
+            {
+                while(currTagIndex != -1 && tags[currTagIndex].startIndex == i)
+                    ParseTag(tags, ref currTagIndex, ref text, ref i);
+            }
             if (tagWait != -1)
                 yield return new WaitForSeconds(tagWait);
             if (i >= text.Length)
@@ -520,28 +530,43 @@ public class MessageManager : MonoBehaviour
                 {
                     //add the next word in
                     currWordIndex++;
+                    string wordToTest = StripTag(words[currWordIndex]);
                     if (text[i] != ' ')
-                        text += $" {words[currWordIndex]}";
+                        text += $" {wordToTest}";
                     else
-                        text += words[currWordIndex];
+                        text += wordToTest;
                     //test if the text would be overflowing with the arrow
                     narratorText.text = initialText + text;
                     narratorText.text += "\u25BC";
                     narratorText.ForceMeshUpdate();
-                }
-                if (narratorText.isTextOverflowing)
-                {
-                    text = text.Remove(text.Length - words[currWordIndex].Length);
-                    currWordIndex--;
-                    narratorText.text = initialText + text;
-                    narratorText.text += "\u25BC";
-                    waitingForInput = true;
-                    isAtEndOfLine = true;
-                    isMessageRunning = true;
-                }
-                else if (currWordIndex != words.Length - 1)
-                {
-                    narratorText.text = narratorText.text.Remove(narratorText.text.Length - 1);
+                    if (narratorText.isTextOverflowing)
+                    {
+                        //if text is overflowing, we remove the word without the tags
+                        text = text.Remove(text.Length - wordToTest.Length);
+                        //update the current word index
+                        currWordIndex--;
+                        //update the mesh and add the input signaller at the end
+                        narratorText.text = initialText + text.TrimEnd();
+                        narratorText.text += "\u25BC";
+                        //set all the variable to receive input
+                        waitingForInput = true;
+                        isAtEndOfLine = true;
+                        isMessageRunning = true;
+                    }
+                    else 
+                    {
+                        //we remove the input signaller we added by default
+                        if (currWordIndex != words.Length - 1)
+                        narratorText.text = narratorText.text.Remove(narratorText.text.Length - 1);
+                        //if the word we wanted to add had tags inside, we remove the word without tags and add the tags in
+                        if(wordToTest != words[currWordIndex])
+                        {
+                            text = text.Remove(text.Length - wordToTest.Length);
+                            text += words[currWordIndex];
+                            narratorText.text = initialText + text;
+                        }
+                        
+                    }
                 }
             }
         }
@@ -552,7 +577,7 @@ public class MessageManager : MonoBehaviour
 
         yield return null;
     }
-    public IEnumerator DisplayMessage(CommandData dialogue)
+    public IEnumerator DisplayMessageCharacter(CommandData dialogue)
     {
         characterName.text = dialogue.Character.characterName;
         characterName.color = dialogue.Character.nameColor;
@@ -562,28 +587,39 @@ public class MessageManager : MonoBehaviour
             narratorTextBox.SetActive(false);
         if (!characterTextBox.gameObject.activeInHierarchy)
             characterTextBox.SetActive(true);
-        if(currentImages.Count > 1)
+        if(currentImages.Count > 1 && currentImages.ContainsKey(characterName.text))
         {
             foreach(var kvp in currentImages)
             {
                 if (kvp.Key != characterName.text)
                     kvp.Value.GetComponent<Image>().color = Color.grey;
+                else
+                    kvp.Value.GetComponent<Image>().color = Color.white;
             }
         }
 
-        currentImages[characterName.text].GetComponent<Image>().color = Color.white;
-
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
+
+        List<Tag> tags = ParseTextTags(ref text);
+        int currTagIndex = -1;
+        if (tags.Count > 0)
+            currTagIndex = 0;
+
         var words = text.Split(' ');
         int currWordIndex = 0;
         text = words[0];
         isMessageRunning = true;
+
         for (int i = 0; i < text.Length; i++)
         {
             while (waitingForInput)
                 yield return null;
-            while (ParseTag(ref i, ref text, ref currWordIndex, words));
+            if (currTagIndex != -1)
+            {
+                while (currTagIndex != -1 && tags[currTagIndex].startIndex == i)
+                    ParseTag(tags, ref currTagIndex, ref text, ref i);
+            }
             if (tagWait != -1)
                 yield return new WaitForSeconds(tagWait);
             if (i >= text.Length)
@@ -600,45 +636,58 @@ public class MessageManager : MonoBehaviour
                 {
                     //add the next word in
                     currWordIndex++;
+                    string wordToTest = StripTag(words[currWordIndex]);
                     if (text[i] != ' ')
-                        text += $" {words[currWordIndex]}";
+                        text += $" {wordToTest}";
                     else
-                        text += words[currWordIndex];
+                        text += wordToTest;
                     //test if the text would be overflowing with the arrow
                     dialogueText.text = text;
                     dialogueText.text += "\u25BC";
                     dialogueText.ForceMeshUpdate();
+                    if (dialogueText.isTextOverflowing)
+                    {
+                        //if text is overflowing, we remove the word without the tags
+                        text = text.Remove(text.Length - wordToTest.Length);
+                        //update the current word index
+                        currWordIndex--;
+                        //update the mesh and add the input signaller at the end
+                        dialogueText.text = text.TrimEnd();
+                        dialogueText.text += "\u25BC";
+                        //set all the variable to receive input
+                        waitingForInput = true;
+                        isAtEndOfLine = true;
+                        isMessageRunning = true;
+                    }
+                    else
+                    {
+                        //we remove the input signaller we added by default
+                        if (currWordIndex != words.Length - 1)
+                            dialogueText.text = dialogueText.text.Remove(dialogueText.text.Length - 1);
+                        //if the word we wanted to add had tags inside, we remove the word without tags and add the tags in
+                        if (wordToTest != words[currWordIndex])
+                        {
+                            text = text.Remove(text.Length - wordToTest.Length);
+                            text += words[currWordIndex];
+                            dialogueText.text = text;
+                        }
+
+                    }
                 }
-                if (dialogueText.isTextOverflowing)
-                {
-                    text = text.Remove(text.Length - words[currWordIndex].Length);
-                    currWordIndex--;
-                    dialogueText.text = text;
-                    dialogueText.text += "\u25BC";
-                    waitingForInput = true;
-                    isAtEndOfLine = true;
-                    isMessageRunning = true;
-                }
-                else if (currWordIndex != words.Length - 1)
-                {
-                    dialogueText.text = dialogueText.text.Remove(dialogueText.text.Length - 1);
-                }
-                else
-                    dialogueText.text += "\u25BC";
             }
         }
-        dialogueText.text += "\u25BC";
+
+        dialogueText.text = dialogueText.text.Insert(dialogueText.text.Length - invisTag.Length, "\u25BC");
         waitingForInput = true;
         isAtEndOfLine = false;
         isMessageRunning = false;
     }
-
-    private IEnumerator MoveCharacterTextBox(TextMeshProUGUI textBox)
+    private IEnumerator ScrollTextBox(TextMeshProUGUI textBox)
     {
         textBox.text = textBox.text.Remove(textBox.text.Length - 1);
         Vector2 maxOffset = textBox.rectTransform.offsetMax;
         float size = textBox.textInfo.lineInfo[0].ascender - textBox.textInfo.lineInfo[0].descender;
-        int noOfLines = -1;
+        int noOfLines;
         if(textBox == narratorText)
             noOfLines = hiddenNarratorText.textInfo.lineCount;
         else
@@ -671,6 +720,59 @@ public class MessageManager : MonoBehaviour
     #endregion
 
     #region Text Parsing Functions
+
+    string StripTag(string word)
+    {
+        if (!word.Contains("<"))
+            return word;
+        else
+        {
+            int startIndex = word.IndexOf("<");
+            int closeIndex = word.LastIndexOf(">");
+            word = word.Remove(startIndex, closeIndex - startIndex + 1);
+            return word;
+        }
+    }
+    public string[] ConflateTags(string[] words)
+    {
+        List<string> newWords = new List<string>();
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (!words[i].Contains("<"))
+            {
+                //word is simple, doesn't have the beginning of a tag
+                newWords.Add(words[i]);
+            }
+            else
+            {   //word has the beginning of a tag
+                if (words[i].Contains(">"))
+                {
+                    //word is a self-enclosed tag e.g. <punch>, </speed>
+                    newWords.Add(words[i]);
+                }
+                else
+                {
+                    //word is an incomplete tag e.g. <punch
+                    string completeTag = words[i];
+                    string bufferTag = "";
+                    for (int j = i + 1; j < words.Length && j < i + 3; j++)
+                    {
+                        bufferTag += " " + words[j];
+                        if (words[j].Contains(">"))
+                        {
+                            completeTag += bufferTag;
+                            newWords.Add(completeTag);
+                            i = j;
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return newWords.ToArray();
+    }
     IEnumerator WaitForPunctuation(char letter)
     {
         switch(letter)
@@ -694,66 +796,87 @@ public class MessageManager : MonoBehaviour
                 }
         }
     }
-
-    bool ParseTag(ref int index, ref string text, ref int currWordIndex, string[] words)
+    void ParseTag(List<Tag> tags, ref int currTagIndex, ref string text, ref int index)
     {
-        if (index >= text.Length)
-            return false;
-        if (text[index] == '<')
+        Tag t = tags[currTagIndex];
+        if(t is PunchTag)
         {
-            string fullTag = text.Substring(index);
-            int closingIndex = fullTag.IndexOf('>');
-            index += closingIndex + 1;
-            fullTag = fullTag.Substring(0, closingIndex + 1);
-
-            //at this point dupl has the full tag, complete with <>
-            string bareTag = fullTag.Substring(1, fullTag.Length - 2);
-
-            if (bareTag.Contains("speed"))
+            PunchTag pt = t as PunchTag;
+            StartCoroutine(Punch(pt.strength, pt.time));
+            tagWait = pt.time;
+        }
+        else if (t is SpeedTag)
+        {
+            SpeedTag st = t as SpeedTag;
+            if(st.isClosing)
             {
-                index -= closingIndex + 1;
-                text = text.Remove(index, closingIndex + 1);
-                if(fullTag == words[currWordIndex])
-                {
-                    currWordIndex++;
-                    if (currWordIndex < words.Length)
-                        text += words[currWordIndex];
-
-                }
-                if (bareTag.Contains("/"))
-                {
-                    speed = baseSpeed;
-                    return true;
-                }
-                int equalIndex = bareTag.IndexOf("=");
-                //in case the tag is just 'speed', return
-                if (equalIndex == -1)
-                {
-                    return true;
-                }
-                //in case the tag is just 'speed=' also return
-                if (equalIndex == bareTag.Length - 1)
-                {
-                    return true;
-                }
-                float val;
-                try
-                {
-                    val = float.Parse(bareTag.Substring(equalIndex + 1));
-                    speed = val;
-                    return true;
-
-                }
-                catch (Exception e)
-                {
-                    return true;
-                }
-
+                speed = baseSpeed;
             }
-            else if (bareTag.Contains("punch"))
+            else
             {
-                float strength = 10.0f, time = 0.5f;
-                if(bareTag.Contains("strength="))
+                speed = st.newSpeed;
+            }
+        }
+        else
+        {
+            if(t.addToText)
+            {
+                index += t.fullTag.Length;
+            }
+        }
+        currTagIndex++;
+        if (currTagIndex >= tags.Count)
+            currTagIndex = -1;
+    }
+    List<Tag> ParseTextTags(ref string text)
+    {
+        List<Tag> tags = new List<Tag>();
+        int startIndex = text.IndexOf("<");
+        int iter = 0;
+        while(startIndex != -1 && iter < 1000)
+        {
+            int closeIndex = text.IndexOf(">", startIndex);
+            iter++;
+            bool toErase = true;
+            if(closeIndex == -1)
+            {
+                Debug.LogError($"Error parsing tag in string {text.Substring(startIndex, startIndex + 10 > text.Length ? text.Length - startIndex : 10)}");
+                return null;
+            }
+            string fullTag = text.Substring(startIndex, closeIndex - startIndex + 1);
+            string bareTag = fullTag.Substring(1, fullTag.Length - 2);
+            if(bareTag.StartsWith("speed"))
+            {
+                SpeedTag st = new SpeedTag();
+                st.startIndex = startIndex;
+                st.baseSpeed = baseSpeed;
+                int equalIndex = bareTag.IndexOf("=");
+                if (equalIndex != -1 && equalIndex != bareTag.Length - 1)
+                {
+                    string param = bareTag.Substring(equalIndex + 1);
+                    try
+                    {
+                        float newSpeed = float.Parse(param);
+                        st.newSpeed = newSpeed;
+                    }
+                    catch (Exception e)
+                    {
+                        ;
+                    }
+                }
+                tags.Add(st);
+            }
+            else if (bareTag.StartsWith("/speed"))
+            {
+                SpeedTag st = new SpeedTag();
+                st.startIndex = startIndex;
+                st.isClosing = true;
+                tags.Add(st);
+            }
+            else if (bareTag.StartsWith("punch"))
+            {
+                PunchTag pt = new PunchTag();
+                pt.startIndex = startIndex; if (bareTag.Contains("strength="))
                 {
                     try
                     {
@@ -763,11 +886,10 @@ public class MessageManager : MonoBehaviour
                             nextSpaceIndex = bareTag.Length;
                         int strLength = "strength=".Length;
                         string strSubstring = bareTag.Substring(strIndex + strLength, nextSpaceIndex - strIndex - strLength);
-                        strength = float.Parse(strSubstring);
+                        pt.strength = float.Parse(strSubstring);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
-                        strength = -1;
                     }
                 }
                 if (bareTag.Contains("time="))
@@ -780,38 +902,39 @@ public class MessageManager : MonoBehaviour
                             nextSpaceIndex = bareTag.Length;
                         int timeLength = "time=".Length;
                         string timeSubstring = bareTag.Substring(timeIndex + timeLength, nextSpaceIndex - timeIndex - timeLength);
-                        time = float.Parse(timeSubstring);
+                        pt.time = float.Parse(timeSubstring);
                     }
                     catch (Exception e)
                     {
-                        time = -1;
                     }
                 }
-                index -= closingIndex + 1;
-                text = text.Remove(index, closingIndex + 1);
-                if(strength == -1)
-                {
-                    StartCoroutine(Punch(0.7f, time));
-                    tagWait = time;
-                    return true;
-                }
-                else if(time == -1)
-                {
-                    StartCoroutine(Punch(strength, 0.5f));
-                    tagWait = 0.5f;
-                    return true;
-                }
-                else
-                {
-                    StartCoroutine(Punch(strength, time));
-                    tagWait = time;
-                    return true;
-                }
+                tags.Add(pt);
             }
-            return true;
+            else
+            {
+                Tag t = new Tag();
+                t.fullTag = fullTag;
+                t.startIndex = startIndex;
+                t.addToText = true;
+                if (bareTag[0] == '/')
+                    t.isClosing = true;
+                tags.Add(t);
+                toErase = false;
+            }
+            if (toErase)
+            {
+                text = text.Remove(startIndex, fullTag.Length);
+                startIndex = text.IndexOf("<");
+            }
+            else
+            {
+                startIndex = text.IndexOf("<", startIndex + 1);
+            }
+
         }
-        return false;
+        return tags;
     }
+
     IEnumerator Punch(float strength, float time)
     {
         Vector3 originalPosBG = backgroundImage.transform.position;
@@ -844,43 +967,28 @@ public class MessageManager : MonoBehaviour
         narratorTextBox.transform.position = originalNarratorPos;
         tagWait = -1;
     }
-
     #endregion
 
-    #region Transition Functions
+}
 
+public class Tag
+{
+    public string fullTag;
+    public int startIndex;
+    public bool isClosing = false;
+    //tags that are added to the text are automatically skipped 
+    public bool addToText = false;
+}
 
-    IEnumerator FadeTextBoxAway(bool isInverted)
-    {
-        characterTextBox.SetActive(true);
-        Image textBoxImg = characterTextBox.GetComponent<Image>();
-        Color charColor = characterName.color;
-        Color textColor = dialogueText.color;
-        Color boxColor = textBoxImg.color;
-        float dur = 0.75f;
-        for (float i = 0; i <= dur; i += Time.deltaTime)
-        {
-            if (isInverted)
-            {
-                charColor.a = Mathf.Lerp(0, 1, (dur - i) / dur);
-                textColor.a = Mathf.Lerp(0, 1, (dur - i) / dur);
-                boxColor.a = Mathf.Lerp(0, boxColorAlpha, (dur - i) / dur);
-            }
-            else
-            {
+public class PunchTag : Tag
+{
+    public float strength = 0.7f;
+    public float time = 0.5f;
+}
 
-                charColor.a = Mathf.Lerp(0, 1, i / dur);
-                textColor.a = Mathf.Lerp(0, 1, i / dur);
-                boxColor.a = Mathf.Lerp(0, boxColorAlpha, i / dur);
-            }
+public class SpeedTag : Tag
+{
+    public float baseSpeed;
+    public float newSpeed;
 
-            characterName.color = charColor;
-            dialogueText.color = textColor;
-            textBoxImg.color = boxColor;
-            yield return null;
-        }
-        if (isInverted)
-            characterTextBox.SetActive(false);
-    }
-    #endregion
 }

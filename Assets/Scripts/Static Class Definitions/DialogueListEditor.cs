@@ -415,6 +415,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = GetCharacterByName(selectedCharacterName);
@@ -646,6 +648,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //location property
             var posProperty = element.FindPropertyRelative("LocationTo");
             string[] posOptions = { "Left", "Centre", "Right" };
@@ -714,6 +718,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = GetCharacterByName(selectedCharacterName);
