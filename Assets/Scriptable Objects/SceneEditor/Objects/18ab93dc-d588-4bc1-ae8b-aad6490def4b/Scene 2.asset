@@ -18,7 +18,8 @@ MonoBehaviour:
   entryTransitionValue: 1.5
   exitTransition: 1
   exitTransitionValue: 0
-  backgroundImage: {fileID: 21300000, guid: 35d2f4321b97e754f845ef012b0bf6fd, type: 3}
+  backgroundImage: {fileID: 21300000, guid: 7974b54b83472344185e4f4d7571620d, type: 3}
+  backgroundMusic: {fileID: 0}
   _path: Assets/Scriptable Objects/SceneEditor/Objects/18ab93dc-d588-4bc1-ae8b-aad6490def4b/Scene
     2.asset
   isStart: 0

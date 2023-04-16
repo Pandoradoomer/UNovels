@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build.Content;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 [CustomEditor(typeof(CharacterData))]
 [CanEditMultipleObjects]
@@ -14,8 +15,13 @@ public class CharacterDataInspector : Editor
     SerializedProperty dialogueColor;
     SerializedProperty emotions;
     SerializedProperty isNarrator;
+    SerializedProperty imgSize;
+    SerializedProperty debugShowRight;
+    SerializedProperty debugShowCentre;
+    SerializedProperty debugShowLeft;
 
     private bool isCharacterNameHighlighted = false;
+    GameObject[] go = new GameObject[3];
 
     private void OnEnable()
     {
@@ -25,7 +31,12 @@ public class CharacterDataInspector : Editor
         dialogueColor = serializedObject.FindProperty("dialogueColor");
         emotions = serializedObject.FindProperty("emotions");
         isNarrator = serializedObject.FindProperty("isNarrator");
+        imgSize = serializedObject.FindProperty("imgSize");
+        debugShowRight = serializedObject.FindProperty("ShowDebugRight");
+        debugShowCentre = serializedObject.FindProperty("ShowDebugCentre");
+        debugShowLeft = serializedObject.FindProperty("ShowDebugLeft");
     }
+
 
     public override void OnInspectorGUI()
     {
@@ -59,6 +70,17 @@ public class CharacterDataInspector : Editor
             tooltip = "A list of a character's emotions and the sprites associated to them.\n" +
             "If the list is left empty, the character's default sprite will be used."
         });
+        if(!isNarrator.boolValue)
+        {
+            EditorGUILayout.PropertyField(imgSize, new GUIContent()
+            {
+                text = "Image Size",
+                tooltip = "Change the size of the image displayed. Default is 300x400"
+            });
+            EditorGUILayout.PropertyField(debugShowLeft);
+            EditorGUILayout.PropertyField(debugShowCentre);
+            EditorGUILayout.PropertyField(debugShowRight);
+        }
 
         string name = GUI.GetNameOfFocusedControl();
         TestIfCharacterNameChanged(name);

@@ -9,10 +9,12 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 
 public class MessageManager : MonoBehaviour
 {
+    [Header("Text Properties")]
     [SerializeField]
     private TextMeshProUGUI characterName;
     [SerializeField]
@@ -33,6 +35,22 @@ public class MessageManager : MonoBehaviour
     private Image backgroundImage;
     [SerializeField]
     private Image FadeToBlackPanel;
+    [SerializeField]
+    private AudioSource backgroundAudioSource;
+
+    [Header("Option Properties")]
+    [SerializeField]
+    Button optionButton;
+    [SerializeField]
+    GameObject optionCanvas;
+    [SerializeField]
+    Slider volumeSlider;
+    [SerializeField]
+    Button leftButton;
+    [SerializeField]
+    Button rightButton;
+    [SerializeField]
+    TextMeshProUGUI speedText;
 
     [SerializeField]
     List<GameObject> characterImages;
@@ -42,6 +60,7 @@ public class MessageManager : MonoBehaviour
     int currNarratorMessageIndex = 0;
     CharacterData charData = null;
 
+    TextSpeed textSpeed = TextSpeed.NORMAL;
     bool isMessageRunning = false;
     bool isAtEndOfLine = false;
     bool waitingForInput = false;
@@ -80,6 +99,7 @@ public class MessageManager : MonoBehaviour
         currentNarratorMessages = new List<string>();
         offMaxCharacter = dialogueText.rectTransform.offsetMax;
         offMaxNarrator = narratorText.rectTransform.offsetMax;
+        volumeSlider.value = 1.0f;
         if(mainCamera == null)
             mainCamera = FindObjectOfType<Camera>();
 
@@ -105,6 +125,7 @@ public class MessageManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!optionCanvas.activeInHierarchy)
         if (Input.GetKeyDown(KeyCode.E))
         {
             if (isMessageRunning)
@@ -133,6 +154,17 @@ public class MessageManager : MonoBehaviour
                 }
             }
         }
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(optionCanvas.activeInHierarchy == false)
+            {
+                OpenOptionCanvas();
+            }
+            else
+            {
+                CloseOptionCanvas();
+            }
+        }
     }
     public void PlayScene(SceneEditor scene)
     {
@@ -149,10 +181,7 @@ public class MessageManager : MonoBehaviour
         yield return StartCoroutine(UnloadScene(scene));
         SceneManager.Instance.currScene = scene.linkedScene;
         SceneManager.Instance.isScenePlaying = false;
-
-
     }
-
     private IEnumerator ParseCommand(CommandData command)
     {
         switch(command.type)
@@ -168,8 +197,6 @@ public class MessageManager : MonoBehaviour
                     while (waitingForInput)
                         yield return null;
                     yield return StartCoroutine(HideMessageBox(command));
-                    dialogueText.rectTransform.offsetMax = offMaxCharacter;
-                    narratorText.rectTransform.offsetMax = offMaxNarrator;
                     break;
                 }
             case CommandType.SHOW:
@@ -200,46 +227,55 @@ public class MessageManager : MonoBehaviour
         {
             case TransitionTypes.NONE:
                 {
-                    backgroundImage.gameObject.SetActive(false);
-                    List<string> keys = currentImages.Keys.ToList();
-                    foreach(var key in keys)
-                    {
-                        Destroy(currentImages[key]);
-                        currentImages.Remove(key);
-                    }
-                    characterTextBox.SetActive(false);
-                    characterName.text = string.Empty;
-                    dialogueText.text = string.Empty;
                     break;
                 }
             case TransitionTypes.FADE:
                 {
                     Color c = FadeToBlackPanel.color;
                     FadeToBlackPanel.gameObject.SetActive(true);
+                    float initVolume = backgroundAudioSource.volume;
                     for (float i = 0; i < scene.exitTransitionValue; i+= Time.deltaTime)
                     {
                         c.a = Mathf.Lerp(0, 1, i / scene.exitTransitionValue);
                         FadeToBlackPanel.color = c;
+                        backgroundAudioSource.volume = Mathf.Lerp(0, initVolume, (scene.exitTransitionValue - i) / scene.exitTransitionValue);
                         yield return null;
                     }
-                    backgroundImage.gameObject.SetActive(false);
-                    List<string> keys = currentImages.Keys.ToList();
-                    foreach (var key in keys)
-                    {
-                        Destroy(currentImages[key]);
-                        currentImages.Remove(key);
-                    }
-                    characterTextBox.SetActive(false);
-                    characterName.text = string.Empty;
-                    dialogueText.text = string.Empty;
+                    break;
+                }
+            case TransitionTypes.PUNCH:
+                {
+                    yield return StartCoroutine(Punch(0.5f, scene.exitTransitionValue));
                     break;
                 }
         }
-    }
+        backgroundImage.gameObject.SetActive(false);
+        List<string> keys = currentImages.Keys.ToList();
+        foreach (var key in keys)
+        {
+            Destroy(currentImages[key]);
+            currentImages.Remove(key);
+        }
+        characterTextBox.SetActive(false);
+        characterName.text = string.Empty;
+        dialogueText.text = string.Empty;
+        backgroundAudioSource.Stop();
+        backgroundAudioSource.clip = null;
+        backgroundAudioSource.volume = 1.0f;
+        narratorTextBox.SetActive(false);
+        narratorText.text = "\t";
 
+    }
     public IEnumerator LoadScene(SceneEditor scene)
     {
-        backgroundImage.sprite = scene.backgroundImage;
+        backgroundAudioSource.volume = volumeSlider.value / 10.0f;
+        if(scene.backgroundImage != null)
+            backgroundImage.sprite = scene.backgroundImage;
+        if(scene.backgroundMusic != null)
+        {
+            backgroundAudioSource.clip = scene.backgroundMusic;
+            backgroundAudioSource.Play();
+        }
         FadeToBlackPanel.gameObject.SetActive(false);
         switch(scene.entryTransition)
         {
@@ -248,10 +284,22 @@ public class MessageManager : MonoBehaviour
                 yield return null;
                 break;
             case TransitionTypes.FADE:
+                StartCoroutine(FadeBackgroundMusic(scene.entryTransitionValue));
                 yield return StartCoroutine(FadeBackground(scene.entryTransitionValue));
+                break;
+            case TransitionTypes.PUNCH:
+                yield return StartCoroutine(Punch(0.5f, scene.entryTransitionValue));
                 break;
         }
         yield return null;
+    }
+    public IEnumerator FadeBackgroundMusic(float time)
+    {
+        for(float i = 0; i < time; i+= Time.deltaTime)
+        {
+            backgroundAudioSource.volume = Mathf.Lerp(0, 1, i / time);
+            yield return null;
+        }
     }
     public IEnumerator FadeBackground(float time, bool _in = true)
     {
@@ -348,6 +396,11 @@ public class MessageManager : MonoBehaviour
                 Debug.LogError($"Character {dialogue.Character.characterName} is already on screen!");
                 yield break;
             }
+            else if(currentImages.Count == 3)
+            {
+                Debug.LogError($"Can't show more than 3 characters on screen at any given time!");
+                yield break;
+            }
             else
             {
                 if(dialogue.Character.name != "")
@@ -391,6 +444,48 @@ public class MessageManager : MonoBehaviour
             }
 
         }
+        else
+        {
+            if(!currentImages.ContainsKey(dialogue.Character.characterName))
+            {
+                Debug.LogError($"Can't hide {dialogue.Character.characterName} because he's not on the screen!");
+                yield break;
+            }
+            var go = currentImages[dialogue.Character.characterName];
+            Image currImg = go.GetComponent<Image>();
+            currImg.color = new Color(1, 1, 1, 1);
+            switch (dialogue.TransitionType)
+            {
+                case TransitionTypes.NONE:
+                    {
+                        currImg.color = new Color(1, 1, 1, 0);
+                        break;
+                    }
+                case TransitionTypes.FADE:
+                    {
+                        Color c = currImg.color;
+                        for(float i = 0; i < dialogue.Time; i += Time.deltaTime)
+                        {
+                            c.a = Mathf.Lerp(0.0f, 1.0f, (dialogue.Time - i) / dialogue.Time);
+                            currImg.color = c;
+                            yield return null;
+                        }
+                        break;
+                    }
+                case TransitionTypes.PUNCH:
+                    {
+                        StartCoroutine(Punch(0.5f, dialogue.Time));
+                        currImg.color = new Color(1, 1, 1, 0);
+                        yield return new WaitForSeconds(dialogue.Time);
+                        break;
+                    }
+            }
+            
+            currentImages.Remove(dialogue.Character.characterName);
+            Destroy(go);
+
+
+        }
     }
     public IEnumerator HideMessageBox(CommandData dialogue)
     {
@@ -411,6 +506,8 @@ public class MessageManager : MonoBehaviour
                     }
                 case TransitionTypes.PUNCH:
                     {
+                        yield return StartCoroutine(HideTextBox(dialogue.Character.isNarrator, 0));
+                        yield return StartCoroutine(Punch(0.5f, dialogue.Time));
                         break;
                     }
             }
@@ -486,16 +583,17 @@ public class MessageManager : MonoBehaviour
             }
             else
             {
-                hiddenNarratorText.text = dialogue.dialogueText;
+                hiddenNarratorText.text = "\t" + dialogue.dialogueText;
                 hiddenNarratorText.ForceMeshUpdate();
             }
         }
         else
         {
+            narratorText.rectTransform.offsetMax = offMaxNarrator;
             initialText = "\t";
             currentNarratorMessages.Clear();
             currNarratorMessageIndex = 0;
-            hiddenNarratorText.text = dialogue.dialogueText;
+            hiddenNarratorText.text = "\t" + dialogue.dialogueText;
             hiddenNarratorText.ForceMeshUpdate();
         }
         currentNarratorMessages.Add(dialogue.dialogueText);
@@ -514,12 +612,7 @@ public class MessageManager : MonoBehaviour
             if (i >= text.Length)
                 break;
             string splicedText = text.Substring(0, i + 1) + invisTag + text.Substring(i + 1);
-            if(dialogue.Refresh)
-                narratorText.text = splicedText;
-            else
-            {
-                narratorText.text = initialText + splicedText;
-            }
+            narratorText.text = initialText + splicedText;
             if (isMessageRunning)
             {
                 yield return StartCoroutine(WaitForPunctuation(text[i]));
@@ -587,7 +680,9 @@ public class MessageManager : MonoBehaviour
             narratorTextBox.SetActive(false);
         if (!characterTextBox.gameObject.activeInHierarchy)
             characterTextBox.SetActive(true);
-        if(currentImages.Count > 1 && currentImages.ContainsKey(characterName.text))
+
+        dialogueText.rectTransform.offsetMax = offMaxCharacter;
+        if (currentImages.Count > 1 && currentImages.ContainsKey(characterName.text))
         {
             foreach(var kvp in currentImages)
             {
@@ -655,9 +750,14 @@ public class MessageManager : MonoBehaviour
                         dialogueText.text = text.TrimEnd();
                         dialogueText.text += "\u25BC";
                         //set all the variable to receive input
-                        waitingForInput = true;
-                        isAtEndOfLine = true;
-                        isMessageRunning = true;
+                        if (!dialogue.Refresh)
+                        {
+                            waitingForInput = true;
+                            isAtEndOfLine = true;
+                            isMessageRunning = true;
+                        }
+                        else
+                            yield return StartCoroutine(ScrollTextBox(dialogueText, 1, Mathf.Lerp(0.05f, 0.15f,Mathf.Clamp(0, 1, (100-speed)/100))));
                     }
                     else
                     {
@@ -682,7 +782,7 @@ public class MessageManager : MonoBehaviour
         isAtEndOfLine = false;
         isMessageRunning = false;
     }
-    private IEnumerator ScrollTextBox(TextMeshProUGUI textBox)
+    private IEnumerator ScrollTextBox(TextMeshProUGUI textBox, int lineOverload = -1, float timeOverload = 0.5f)
     {
         textBox.text = textBox.text.Remove(textBox.text.Length - 1);
         Vector2 maxOffset = textBox.rectTransform.offsetMax;
@@ -700,8 +800,10 @@ public class MessageManager : MonoBehaviour
             else
                 noOfLines = maxDialogueLines - 1;
         }
+        if (lineOverload != -1)
+            noOfLines = lineOverload;
         Vector2 targetOffset = maxOffset + size * noOfLines * Vector2.up;
-        float time = 0.5f;
+        float time = timeOverload;
         for(float i = 0; i < time; i+= Time.deltaTime)
         {
             textBox.rectTransform.offsetMax = Vector2.Lerp(maxOffset, targetOffset, i / time);
@@ -775,23 +877,24 @@ public class MessageManager : MonoBehaviour
     }
     IEnumerator WaitForPunctuation(char letter)
     {
+        float speedMult = 1.25f - ((int)textSpeed) * 0.25f;
         switch(letter)
         {
             case '!':
             case '?':
             case '.':
                 {
-                    yield return new WaitForSeconds(7.5f / speed);
+                    yield return new WaitForSeconds(7.5f * speedMult / speed);
                     break;
                 }
             case ',':
                 {
-                    yield return new WaitForSeconds(3.5f / speed);
+                    yield return new WaitForSeconds(3.5f * speedMult / speed);
                     break;
                 }
             default:
                 {
-                    yield return new WaitForSeconds(1.0f/speed);
+                    yield return new WaitForSeconds(1.0f * speedMult / speed);
                     break;
                 }
         }
@@ -969,6 +1072,61 @@ public class MessageManager : MonoBehaviour
     }
     #endregion
 
+    #region Option Canvas Functions
+
+    void OpenOptionCanvas()
+    {
+        Time.timeScale = 0;
+        optionCanvas.SetActive(true);
+        OnOptionCanvasEnabled();
+    }
+
+    void CloseOptionCanvas()
+    {
+        Time.timeScale = 1;
+        waitingForInput = false;
+        optionCanvas.SetActive(false);
+    }
+    public void OnOptionButtonClick()
+    {
+        optionButton.gameObject.SetActive(false);
+        OpenOptionCanvas();
+    }
+
+    public void OnCloseButtonClick()
+    {
+        optionButton.gameObject.SetActive(true);
+        CloseOptionCanvas();
+    }
+
+    void OnOptionCanvasEnabled()
+    {
+        speedText.text = textSpeed.ToString();
+        leftButton.gameObject.SetActive(!(((int)textSpeed) == 0));
+        rightButton.gameObject.SetActive(!(((int)textSpeed) == 2));
+    }
+    public void OnVolumeSliderChanged()
+    {
+        backgroundAudioSource.volume = volumeSlider.value / 10.0f;
+    }
+    public void OnRightButtonPressed()
+    {
+        if(((int)textSpeed) < 2)
+        {
+            textSpeed = (TextSpeed)(textSpeed + 1);
+            OnOptionCanvasEnabled();
+        }
+    }
+
+    public void OnLeftButtonPressed()
+    {
+        if((int)textSpeed > 0)
+        {
+            textSpeed = (TextSpeed)(textSpeed - 1);
+            OnOptionCanvasEnabled();
+        }
+    }
+    #endregion
 }
 
 public class Tag
@@ -991,4 +1149,11 @@ public class SpeedTag : Tag
     public float baseSpeed;
     public float newSpeed;
 
+}
+
+public enum TextSpeed
+{
+    SLOW,
+    NORMAL,
+    FAST
 }

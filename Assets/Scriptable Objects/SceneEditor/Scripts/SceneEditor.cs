@@ -15,6 +15,7 @@ public class SceneEditor : ScriptableObject
     public TransitionTypes exitTransition = TransitionTypes.FADE;
     public float exitTransitionValue = 0.0f;
     public Sprite backgroundImage;
+    public AudioClip backgroundMusic;
     public string path { get; private set; }
     [SerializeField]
     private string _path;

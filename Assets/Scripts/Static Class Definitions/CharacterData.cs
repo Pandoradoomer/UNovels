@@ -13,6 +13,10 @@ public class CharacterData : ScriptableObject
     public Color dialogueColor = Color.white;
     public List<EmotionPair> emotions;
     public bool isNarrator;
+    public Vector2 imgSize;
+    public bool ShowDebugRight = false;
+    public bool ShowDebugCentre = false;
+    public bool ShowDebugLeft = false;
 
     public static void Create()
     {
@@ -29,6 +33,7 @@ public class CharacterData : ScriptableObject
         buffer.name = name + assets.Length.ToString();
         buffer.isNarrator = false;
         buffer.emotions = new List<EmotionPair>();
+        buffer.imgSize = new Vector2(300,400);
         AssetDatabase.CreateAsset(buffer, path);
         AssetDatabase.SaveAssets();
         Selection.activeObject = buffer;

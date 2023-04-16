@@ -318,15 +318,18 @@ namespace UnityEditor
                 text = "-"
             }, EditorStyles.miniButton))
             {
-                if (highlightedIndex != -1)
+                if(list.arraySize > 0)
                 {
-                    for (int i = highlightedIndex; i < list.arraySize - 1; i++)
+                    if (highlightedIndex != -1)
                     {
-                        list.MoveArrayElement(i + 1, i);
+                        for (int i = highlightedIndex; i < list.arraySize - 1; i++)
+                        {
+                            list.MoveArrayElement(i + 1, i);
+                        }
+                        highlightedIndex = -1;
                     }
-                    highlightedIndex = -1;
+                    list.arraySize--;
                 }
-                list.arraySize--;
             }
         }
         private void ListenForEvents(SerializedProperty list, Event e)
@@ -589,6 +592,15 @@ namespace UnityEditor
                 {
                     text = "Refresh text box?",
                     tooltip = "If the box is ticked, the narrator text box is cleared prior to this message being shown"
+                });
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(refreshProperty, new GUIContent()
+                {
+                    text = "Auto-scroll text box?",
+                    tooltip = "If the text would not fit inside the text box, it will not require player input to scroll.\n\n" +
+                    " Useful for characters freaking out or talking very quickly"
                 });
             }
             EditorGUILayout.BeginHorizontal();

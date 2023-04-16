@@ -20,6 +20,7 @@ public class SceneEditorInspector : Editor
     SerializedProperty exitTransition;
     SerializedProperty exitValue;
     SerializedProperty backgroundImage;
+    SerializedProperty backgroundMusic;
     bool isSceneNameHighlighted = false;
     DialogueListEditor dialogueEditor;
     Rect guiRect;
@@ -38,6 +39,7 @@ public class SceneEditorInspector : Editor
         exitTransition = serializedObject.FindProperty("exitTransition");
         exitValue = serializedObject.FindProperty("exitTransitionValue");
         backgroundImage = serializedObject.FindProperty("backgroundImage");
+        backgroundMusic = serializedObject.FindProperty("backgroundMusic");
         dialogueEditor = new DialogueListEditor();
     }
     
@@ -54,6 +56,7 @@ public class SceneEditorInspector : Editor
         GUI.SetNextControlName("Scene Name");
         EditorGUILayout.PropertyField(sceneName);
         EditorGUILayout.PropertyField(backgroundImage);
+        EditorGUILayout.PropertyField(backgroundMusic);
         EditorGUILayout.PropertyField(entryTransition);
         if (entryTransition.GetEnumValue<TransitionTypes>() == TransitionTypes.FADE)
         {

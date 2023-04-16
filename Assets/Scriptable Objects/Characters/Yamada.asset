@@ -20,3 +20,7 @@ MonoBehaviour:
   - emotion: Neutral
     sprite: {fileID: 21300000, guid: 8078b7476ee49234b847f242e83cd786, type: 3}
   isNarrator: 0
+  imgSize: {x: 0, y: 0}
+  ShowDebugRight: 0
+  ShowDebugCentre: 0
+  ShowDebugLeft: 0
