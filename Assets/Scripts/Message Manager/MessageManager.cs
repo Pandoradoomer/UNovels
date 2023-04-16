@@ -28,6 +28,8 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private Canvas canvas;
     [SerializeField]
+    private GameObject gameCanvas;
+    [SerializeField]
     private GameObject characterTextBox;
     [SerializeField]
     private Camera mainCamera;
@@ -406,7 +408,7 @@ public class MessageManager : MonoBehaviour
                 if(dialogue.Character.name != "")
                 {
 
-                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], canvas.transform);
+                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], gameCanvas.transform);
                     go.name = dialogue.Character.characterName;
                     go.transform.SetSiblingIndex(1);
                     currentImages.Add(dialogue.Character.characterName, go);

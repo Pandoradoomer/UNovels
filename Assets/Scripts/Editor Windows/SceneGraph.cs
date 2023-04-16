@@ -36,24 +36,25 @@ public class SceneGraph : EditorWindow
     Vector2 clickStartPos = Vector2.zero;
 
     bool controlPressed = false;
+
+    bool hasEnabled = false;
     private void OnEnable()
     {
-
-        BlockFactory.LoadAllBlockAssets();
-        blockContents = BlockFactory.MakeBlockContentsFromJSON();
-        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
-        if (blockContents == null || worldData == null)
-            return;
-        blockDrawers = new List<BlockDrawer>();
-        foreach (var bc in blockContents)
-        {
-            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
-        }
-
-        BlockFactory.CreateLinks(blockDrawers, blockContents);
-        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
-        _zoom = worldData.currentZoomValue;
-        _zoomArea = position;
+        //BlockFactory.LoadAllBlockAssets();
+        //blockContents = BlockFactory.MakeBlockContentsFromJSON();
+        //WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        //if (blockContents == null || worldData == null)
+        //    return;
+        //blockDrawers = new List<BlockDrawer>();
+        //foreach (var bc in blockContents)
+        //{
+        //    blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
+        //}
+        //
+        //BlockFactory.CreateLinks(blockDrawers, blockContents);
+        //currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
+        //_zoom = worldData.currentZoomValue;
+        //_zoomArea = position;
     }
 
     public void FirstTimeInit()
@@ -172,10 +173,24 @@ public class SceneGraph : EditorWindow
 
     private void OnFocus()
     {
-        if(highlightedObjIndex != -1)
+        BlockFactory.LoadAllBlockAssets();
+        blockContents = BlockFactory.MakeBlockContentsFromJSON();
+        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        if (blockContents == null || worldData == null)
+            return;
+        blockDrawers = new List<BlockDrawer>();
+        foreach (var bc in blockContents)
+        {
+            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
+        }
+
+        BlockFactory.CreateLinks(blockDrawers, blockContents);
+        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
+        _zoom = worldData.currentZoomValue;
+        _zoomArea = position;
+        if (highlightedObjIndex != -1)
         {
             EditCallback(highlightedObjIndex);
-
         }
     }
 

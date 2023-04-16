@@ -145,11 +145,11 @@ namespace UnityEditor
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
             string s = list.GetArrayElementAtIndex(index).FindPropertyRelative("dialogueText").stringValue;
-            bool truncated = s.Length > 15;
+            bool truncated = s.Length > 13;
             string toShow = "";
             if (truncated)
             {
-                toShow = s.Substring(0, 15) + "...";
+                toShow = s.Substring(0, 13) + "...";
             }
             else toShow = s;
             GUILayout.FlexibleSpace();

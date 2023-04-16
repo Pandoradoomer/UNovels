@@ -19,7 +19,7 @@ MonoBehaviour:
   exitTransition: 1
   exitTransitionValue: 1
   backgroundImage: {fileID: 21300000, guid: 69c7f60d38cd54544bbd51485757f83b, type: 3}
-  backgroundMusic: {fileID: 8300000, guid: 0801135fb5273de4f80154ffa128165a, type: 3}
+  backgroundMusic: {fileID: 0}
   _path: Assets/Scriptable Objects/SceneEditor/Objects/a3dce87c-2064-4d64-892e-f252db708c31/Start
     Scene.asset
   isStart: 1
@@ -40,4 +40,36 @@ MonoBehaviour:
     emotion: Default
     Time: 0
     IsShow: 0
+    Refresh: 1
+  - type: 3
+    dialogueText: <speed=50>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Phasellus condimentum fermentum sapien. Ut aliquet rhoncus leo, egestas sagittis
+      dui feugiat non. Sed ut sagittis arcu, ut varius lectus. Etiam sed maximus
+      lectus, nec blandit magna. Orci varius natoque penatibus et magnis dis parturient
+      montes, nascetur ridiculus mus. Aliquam vitae augue et risus mollis pulvinar.
+      Donec suscipit orci quis maximus fermentum. Duis consectetur tortor faucibus,
+      lobortis est ac, cursus nibh. Nullam dignissim eleifend neque eget pellentesque.
+      Nunc vel quam tellus.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 1
+    TransitionType: 1
+    emotion: Neutral
+    Time: 1
+    IsShow: 0
+    Refresh: 1
+  - type: 3
+    dialogueText: <speed=50>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Phasellus condimentum fermentum sapien. Ut aliquet rhoncus leo, egestas sagittis
+      dui feugiat non. Sed ut sagittis arcu, ut varius lectus. Etiam sed maximus
+      lectus, nec blandit magna. Orci varius natoque penatibus et magnis dis parturient
+      montes, nascetur ridiculus mus. Aliquam vitae augue et risus mollis pulvinar.
+      Donec suscipit orci quis maximus fermentum. Duis consectetur tortor faucibus,
+      lobortis est ac, cursus nibh. Nullam dignissim eleifend neque eget pellentesque.
+      Nunc vel quam tellus.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 1
+    TransitionType: 1
+    emotion: Neutral
+    Time: 1
+    IsShow: 1
     Refresh: 1
