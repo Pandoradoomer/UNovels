@@ -18,3 +18,7 @@ MonoBehaviour:
   dialogueColor: {r: 1, g: 1, b: 1, a: 1}
   emotions: []
   isNarrator: 1
+  imgSize: {x: 0, y: 0}
+  ShowDebugRight: 0
+  ShowDebugCentre: 0
+  ShowDebugLeft: 0

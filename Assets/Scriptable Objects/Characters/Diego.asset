@@ -18,9 +18,9 @@ MonoBehaviour:
   dialogueColor: {r: 1, g: 0.9871229, b: 0.48490566, a: 1}
   emotions:
   - emotion: Neutral
-    sprite: {fileID: -1973612814, guid: e4854165fb297ce41bcc9726372912ec, type: 3}
+    sprite: {fileID: 21300000, guid: 492b871b9432ac44e8fea3fca3d6d1fd, type: 3}
   - emotion: Angry
-    sprite: {fileID: -1888985002, guid: e4854165fb297ce41bcc9726372912ec, type: 3}
+    sprite: {fileID: 21300000, guid: 5ea730eab25f95b468021bd0836e7307, type: 3}
   isNarrator: 0
   imgSize: {x: 300, y: 400}
   ShowDebugRight: 0
