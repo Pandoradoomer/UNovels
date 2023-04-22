@@ -357,19 +357,7 @@ public class SceneGraph : EditorWindow
     {
         Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
         float initialY = InitialPos.y;
-        int index = -1;
-        for (int i = 0; i < blockDrawers.Count; i++)
-        {
-            var bd = blockDrawers[i];
-            if (bd.isStart)
-            {
-                index = i;
-                break;
-            }
-        }
-        BlockDrawer startBlock = blockDrawers[index];
-        blockDrawers.RemoveAt(index);
-        blockDrawers.Insert(0, startBlock);
+        RearrangeBlockList();
         foreach (BlockDrawer bd in blockDrawers)
         {
             bd.pos = InitialPos;
@@ -380,7 +368,27 @@ public class SceneGraph : EditorWindow
                 InitialPos.x += bd.blockClass.size.x * 1.5f;
             }
         }
+        RecentreView();
         Save();
+    }
+
+    void RearrangeBlockList()
+    {
+        BlockDrawer startBlock = blockDrawers.Find(bd => bd.isStart);
+        List<BlockDrawer> newBlocks = new List<BlockDrawer>();
+        BlockDrawer currBlock = startBlock;
+        while(currBlock != null)
+        {
+            newBlocks.Add(currBlock);
+            currBlock = currBlock.blockLink;
+        }
+        foreach(var bd in blockDrawers)
+        {
+            if (!newBlocks.Contains(bd))
+                newBlocks.Add(bd);
+        }
+        blockDrawers = newBlocks;
+
     }
 
     void EditCallback(object data)
