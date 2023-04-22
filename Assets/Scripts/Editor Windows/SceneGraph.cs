@@ -167,9 +167,13 @@ public class SceneGraph : EditorWindow
         GUILayout.EndHorizontal();
         GUILayout.Label($"MousePos x: {Event.current.mousePosition.x} y: {Event.current.mousePosition.y}");
         GUILayout.Label("Zoom: " + _zoom);
-        _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax);
+        _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax, new[]
+        {
+            GUILayout.MaxWidth(100),
+            GUILayout.MinWidth(50)
+        }) ;
         _zoom = Mathf.Round(_zoom * 10) / 10;
-
+        GUILayout.Space(10);
         GUILayout.EndVertical();
         if (Event.current.type == EventType.Repaint)
         {
@@ -182,19 +186,15 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-
-    private void OnGUI()
+    void HandleEvents()
     {
-        DrawZoomArea();
-        DrawNonZoomArea();
-        
 
         //right-click
         if (Event.current.type == EventType.MouseDown && Event.current.button == 1)
         {
             Vector2 mousePos = Event.current.mousePosition;
             int index = CheckBlockCollision(Event.current.mousePosition);
-            if(index != -1)
+            if (index != -1)
             {
                 highlightedObjIndex = index;
                 Repaint();
@@ -225,7 +225,7 @@ public class SceneGraph : EditorWindow
             }
         }
         //left click
-        if(Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftControl)
+        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftControl)
         {
             controlPressed = true;
         }
@@ -233,7 +233,7 @@ public class SceneGraph : EditorWindow
         {
             controlPressed = false;
         }
-        if (Event.current.type == EventType.MouseDown && Event.current.button == 0) 
+        if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
         {
             Event e = Event.current;
             bool clickedOnVoid = true;
@@ -243,7 +243,7 @@ public class SceneGraph : EditorWindow
                 BlockDrawer bd = blockDrawers[index];
                 clickedOnVoid = false;
                 SelectBlock(index, e.mousePosition + currentWorldOrigin, bd.pos + currentWorldOrigin);
-                if(bdToLink != null)
+                if (bdToLink != null)
                 {
                     LinkBlocks(bdToLink, bd);
                     bdToLink = null;
@@ -255,39 +255,72 @@ public class SceneGraph : EditorWindow
             {
                 highlightedObjIndex = -1;
                 toLinkObjIndex = -1;
-                if(controlPressed)
+                if (controlPressed)
                 {
                     clickStartPos = e.mousePosition - currentWorldOrigin;
                 }
                 Repaint();
             }
         }
-        if(Event.current.type == EventType.MouseDrag && Event.current.button == 0)
+        if (Event.current.type == EventType.MouseDrag && Event.current.button == 0)
         {
-            if(selectedObjIndex != -1)
+            if (selectedObjIndex != -1)
             {
-                Vector2 offset = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
-                Vector2 pos = selectObjPos + offset;
+                var currentMousePos = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition + currentWorldOrigin);
+                Vector2 offset =  currentMousePos - selectMousePos;
+                Vector2 originalSelectPos = selectObjPos - currentWorldOrigin;
+                Vector2 pos = originalSelectPos + offset;
                 pos.x = Mathf.Round(pos.x / 20.0f) * 20.0f;
                 pos.y = Mathf.Round(pos.y / 20.0f) * 20.0f;
                 blockDrawers[selectedObjIndex].pos = pos;
-                //blockDrawers[selectedObjIndex].pos = selectObjPos + offset;
                 Repaint();
             }
-            if(controlPressed)
+            if (controlPressed)
             {
                 currentWorldOrigin = -(clickStartPos - Event.current.mousePosition);
                 Repaint();
             }
         }
-        if(Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            if(selectedObjIndex != -1)
+            if (selectedObjIndex != -1)
             {
                 UnselectBlock();
             }
         }
+        if(Event.current.type == EventType.ScrollWheel)
+        {
+            var delta = Event.current.delta;
+            _zoom -= Mathf.Sign(delta.y) * 0.1f;
+            _zoom = Mathf.Clamp(_zoom, kZoomMin, kZoomMax);
+        }
+    }
 
+
+    private void OnGUI()
+    {
+        DrawZoomArea();
+        DrawNonZoomArea();
+        HandleEvents();
+
+    }
+    void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
+    {
+        selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
+        selectObjPos = objPos;
+        EditCallback(index);
+        var block = blockDrawers[index];
+        blockDrawers.RemoveAt(index);
+        blockDrawers.Add(block);
+        selectedObjIndex = blockDrawers.Count - 1;
+        highlightedObjIndex = selectedObjIndex;
+    }
+
+    void UnselectBlock()
+    {
+        selectedObjIndex = -1;
+        selectMousePos = Vector2.zero;
+        selectObjPos = Vector2.zero;
     }
 
     void EditCallback(object data)
@@ -413,24 +446,6 @@ public class SceneGraph : EditorWindow
             }
         }
         return collisionIndex;
-    }
-    void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
-    {
-        selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
-        selectObjPos = objPos;// + currentWorldOrigin;
-        EditCallback(index);
-        var block = blockDrawers[index];
-        blockDrawers.RemoveAt(index);
-        blockDrawers.Add(block);
-        selectedObjIndex = blockDrawers.Count - 1;
-        highlightedObjIndex = selectedObjIndex;
-    }
-
-    void UnselectBlock()
-    {
-        selectedObjIndex = -1;
-        selectMousePos = Vector2.zero;
-        selectObjPos = Vector2.zero;
     }
 
     private void Save()
