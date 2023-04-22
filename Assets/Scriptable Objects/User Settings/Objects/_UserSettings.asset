@@ -15,6 +15,7 @@ MonoBehaviour:
   TextBoxColor: {r: 50, g: 50, b: 50, a: 170}
   DialogueFontSize: 22
   CharacterNameFontSize: 18
+  TextSpeed: 20
   CharacterTextBoxSize: {x: 700, y: 130}
   CharacterTextBoxPosition: {x: 0, y: -140}
   NarratorTextBoxSize: {x: 700, y: 400}

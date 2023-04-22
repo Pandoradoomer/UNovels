@@ -34,7 +34,7 @@ namespace UnityEditor
             {
                 EditorGUILayout.LabelField(new GUIContent()
                 {
-                    text = "There are no dialogues"
+                    text = "There are no commands"
                 }, EditorStyles.label);
             }
             else
@@ -61,19 +61,19 @@ namespace UnityEditor
             GUIStyle CommandTypeLabelStyle = new GUIStyle()
             {
                 alignment = TextAnchor.MiddleCenter,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
             };
             GUIStyle CharacterStyle = new GUIStyle()
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
 
             };
             GUIStyle DialogueStyle = new GUIStyle()
             {
                 fontStyle = FontStyle.Italic,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
             };
             List<Rect> boxes = new List<Rect>();
             GUILayout.Space(4);
@@ -94,13 +94,13 @@ namespace UnityEditor
                 if (i == highlightedIndex)
                 {
                     Rect last = boxes.Last();
-                    last.x--;
-                    last.y--;
-                    last.width += 2;
-                    last.height += 2;
+                    last.x-=2;
+                    last.y-=2;
+                    last.width += 4;
+                    last.height += 4;
                     EditorGUI.DrawRect(last, Color.green);
                 }
-                EditorGUI.DrawRect(boxes.Last(), Color.grey);
+                EditorGUI.DrawRect(boxes.Last(), GetColourByBoxType(type));
                 EditorGUILayout.BeginHorizontal();
                 ShowInsideData(type, list, i, CommandTypeLabelStyle, CharacterStyle, DialogueStyle);
                 EditorGUILayout.EndHorizontal();
@@ -112,6 +112,19 @@ namespace UnityEditor
             }
             GUILayout.Space(2);
             dialoguesRect = boxes;
+        }
+
+        Color GetColourByBoxType(CommandType type)
+        {
+            switch(type)
+            {
+                case CommandType.SAY: return new Color(0.82f, 1.0f, 0.74f); // light green
+                case CommandType.WAIT: return new Color(1.0f, 0.8f, 0.7961f); // light red
+                case CommandType.SHOW: return new Color(0.678f, 0.847f, 0.902f); // light blue
+                case CommandType.MOVE: return new Color(1.0f, 0.835f, 0.5f); //light orange
+                case CommandType.SPRITE: return new Color(1.0f, 1.0f, 0.6f); //light yellow
+                default: return Color.grey;
+            }
         }
         #region Show Inside List Elements
         private void ShowInsideData(CommandType type, SerializedProperty list, int index, GUIStyle style1, GUIStyle style2, GUIStyle style3)
@@ -610,28 +623,30 @@ namespace UnityEditor
                 tooltip = "If ticked, hides text box after the text is finished."
             });
             EditorGUILayout.EndHorizontal();
-            GUI.enabled = isShow;
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Hide transition", GUILayout.Width(160));
-            selectedTransIndex = EditorGUILayout.Popup(selectedTransIndex, transOptions);
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            if (transOptions[selectedTransIndex] != "NONE")
+            if(isShow)
             {
-                if (transOptions[selectedTransIndex] == "FADE")
-                    EditorGUILayout.PropertyField(timeProperty, new GUIContent()
-                    {
-                        text = "Fade time",
-                        tooltip = "Over how many seconds does the textbox fade away."
-                    });
-                else
-                    EditorGUILayout.PropertyField(timeProperty, new GUIContent()
-                    {
-                        text = "Punch strength",
-                        tooltip = "How strong the camera shake should be. Recommended value: 10."
-                    });
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Hide transition", GUILayout.Width(160));
+                selectedTransIndex = EditorGUILayout.Popup(selectedTransIndex, transOptions);
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (transOptions[selectedTransIndex] != "NONE")
+                {
+                    if (transOptions[selectedTransIndex] == "FADE")
+                        EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                        {
+                            text = "Fade time",
+                            tooltip = "Over how many seconds does the textbox fade away."
+                        });
+                    else
+                        EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                        {
+                            text = "Punch strength",
+                            tooltip = "How strong the camera shake should be. Recommended value: 10."
+                        });
+                }
+                EditorGUILayout.EndHorizontal();
             }
-            EditorGUILayout.EndHorizontal();
             GUILayout.Space(10);
             EditorGUILayout.EndVertical();
             if (boxRectWidth == -1 && boxRect.width != 0)

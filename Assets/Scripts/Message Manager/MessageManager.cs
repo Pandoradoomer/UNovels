@@ -28,8 +28,6 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private Canvas canvas;
     [SerializeField]
-    private GameObject gameCanvas;
-    [SerializeField]
     private GameObject characterTextBox;
     [SerializeField]
     private Camera mainCamera;
@@ -94,7 +92,6 @@ public class MessageManager : MonoBehaviour
     {
         SetUserSettings();
         currentImages = new Dictionary<string, GameObject>();
-        speed = baseSpeed;
         boxColorAlpha = characterTextBox.GetComponent<Image>().color.a;
         characterTextBox.SetActive(false);
         narratorTextBox.SetActive(false);
@@ -112,6 +109,7 @@ public class MessageManager : MonoBehaviour
         UserSettings settings = SceneManager.Instance.userSettings;
         if(settings != null)
         {
+            baseSpeed = speed = settings.TextSpeed;
             characterTextBox.GetComponent<Image>().color = settings.TextBoxColor;
             narratorTextBox.GetComponent<Image>().color = settings.TextBoxColor;
             characterName.fontSize = settings.CharacterNameFontSize;
@@ -225,7 +223,8 @@ public class MessageManager : MonoBehaviour
     }
     public IEnumerator UnloadScene(SceneEditor scene)
     {
-        switch(scene.exitTransition)
+        FadeToBlackPanel.gameObject.SetActive(true);
+        switch (scene.exitTransition)
         {
             case TransitionTypes.NONE:
                 {
@@ -234,7 +233,6 @@ public class MessageManager : MonoBehaviour
             case TransitionTypes.FADE:
                 {
                     Color c = FadeToBlackPanel.color;
-                    FadeToBlackPanel.gameObject.SetActive(true);
                     float initVolume = backgroundAudioSource.volume;
                     for (float i = 0; i < scene.exitTransitionValue; i+= Time.deltaTime)
                     {
@@ -251,7 +249,6 @@ public class MessageManager : MonoBehaviour
                     break;
                 }
         }
-        backgroundImage.gameObject.SetActive(false);
         List<string> keys = currentImages.Keys.ToList();
         foreach (var key in keys)
         {
@@ -278,11 +275,9 @@ public class MessageManager : MonoBehaviour
             backgroundAudioSource.clip = scene.backgroundMusic;
             backgroundAudioSource.Play();
         }
-        FadeToBlackPanel.gameObject.SetActive(false);
         switch(scene.entryTransition)
         {
             case TransitionTypes.NONE:
-                backgroundImage.gameObject.SetActive(true);
                 yield return null;
                 break;
             case TransitionTypes.FADE:
@@ -293,6 +288,7 @@ public class MessageManager : MonoBehaviour
                 yield return StartCoroutine(Punch(0.5f, scene.entryTransitionValue));
                 break;
         }
+        FadeToBlackPanel.gameObject.SetActive(false);
         yield return null;
     }
     public IEnumerator FadeBackgroundMusic(float time)
@@ -307,23 +303,19 @@ public class MessageManager : MonoBehaviour
     {
         Color c;
         if (_in)
-            c = new Color(1, 1, 1, 0);
+            c = new Color(0, 0, 0, 0);
         else
-            c = new Color(1, 1, 1, 1);
-        backgroundImage.color = c;
-        if(_in)
-            backgroundImage.gameObject.SetActive(true);
+            c = new Color(0, 0, 0, 1);
+        FadeToBlackPanel.color = c;
         for(float i = 0.0f; i < time; i += Time.deltaTime)
         {
-            if (_in)
+            if (!_in)
                 c.a = Mathf.Lerp(0, 1, i / time);
             else
                 c.a = Mathf.Lerp(0, 1, (time - i) / time);
-            backgroundImage.color = c;
+            FadeToBlackPanel.color = c;
             yield return null;
         }
-        if(!_in)
-            backgroundImage.gameObject.SetActive(false);
     }
 
     #region Command Parsing
@@ -408,7 +400,7 @@ public class MessageManager : MonoBehaviour
                 if(dialogue.Character.name != "")
                 {
 
-                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], gameCanvas.transform);
+                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], canvas.transform);
                     go.name = dialogue.Character.characterName;
                     go.transform.SetSiblingIndex(1);
                     currentImages.Add(dialogue.Character.characterName, go);

@@ -57,19 +57,34 @@ public class SceneEditorInspector : Editor
         EditorGUILayout.PropertyField(sceneName);
         EditorGUILayout.PropertyField(backgroundImage);
         EditorGUILayout.PropertyField(backgroundMusic);
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField(new GUIContent()
+        {
+            text = "Transition Details"
+        }, EditorStyles.boldLabel);
+        GUILayout.Space(10);
         EditorGUILayout.PropertyField(entryTransition);
         if (entryTransition.GetEnumValue<TransitionTypes>() == TransitionTypes.FADE)
         {
-            GUI.SetNextControlName("Fade in time");
-            EditorGUILayout.PropertyField(entryValue);
+            EditorGUILayout.PropertyField(entryValue, new GUIContent()
+            {
+                text = "Fade In Time"
+            });
         }
         EditorGUILayout.PropertyField(exitTransition);
         if(exitTransition.GetEnumValue<TransitionTypes>() == TransitionTypes.FADE)
         {
-
-            GUI.SetNextControlName("Fade out time");
-            EditorGUILayout.PropertyField(exitValue);
+            EditorGUILayout.PropertyField(exitValue, new GUIContent()
+            {
+                text = "Fade Out Time"
+            });
         }
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField(new GUIContent()
+        {
+            text = "Graph Details"
+        }, EditorStyles.boldLabel);
+        GUILayout.Space(10);
         GUI.enabled = false;
         EditorGUILayout.PropertyField(isStartProperty);
         EditorGUILayout.PropertyField(linkProperty);
@@ -78,7 +93,7 @@ public class SceneEditorInspector : Editor
         GUILayout.Space(10);
         EditorGUILayout.LabelField(new GUIContent()
         {
-            text = "Dialogues"
+            text = "Commands"
         }, EditorStyles.boldLabel);
         dialogueEditor.Show(serializedObject, commands, Event.current);
         

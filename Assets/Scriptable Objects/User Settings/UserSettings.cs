@@ -11,6 +11,8 @@ public class UserSettings : ScriptableObject
     public Color TextBoxColor = new Color(50, 50, 50, 170);
     public float DialogueFontSize = 22;
     public float CharacterNameFontSize = 18;
+    [Tooltip("Text speed defines how many characters are shown every second. A text speed of 1 shows a character every second.")]
+    public float TextSpeed = 20;
     [Header("Character Text Box Attributes")]
     public Vector2 CharacterTextBoxSize = new Vector2(700, 130);
     public Vector2 CharacterTextBoxPosition = new Vector2(0, -140);

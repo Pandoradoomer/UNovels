@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 014b8d6936049164e82e450a5f1fd9c9, type: 3}
-  m_Name: DIamond
+  m_Name: Diamond
   m_EditorClassIdentifier: 
   defaultLabelText: New Choice Block
   blockShape: 1
-  size: {x: 50, y: 20}
+  size: {x: 70, y: 20}

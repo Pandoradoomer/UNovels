@@ -23,6 +23,6 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 5ea730eab25f95b468021bd0836e7307, type: 3}
   isNarrator: 0
   imgSize: {x: 300, y: 400}
-  ShowDebugRight: 0
+  ShowDebugRight: 1
   ShowDebugCentre: 0
   ShowDebugLeft: 1

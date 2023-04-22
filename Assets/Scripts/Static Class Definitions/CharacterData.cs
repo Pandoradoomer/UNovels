@@ -24,6 +24,7 @@ public class CharacterData : ScriptableObject
         Create(name);
     }
 
+
     public static void Create(string name)
     {
         var assets = AssetDatabase.FindAssets("", new[] { "Assets/Scriptable Objects/Characters/" });

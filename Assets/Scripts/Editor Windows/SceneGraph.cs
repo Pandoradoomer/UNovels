@@ -40,21 +40,32 @@ public class SceneGraph : EditorWindow
     bool hasEnabled = false;
     private void OnEnable()
     {
-        //BlockFactory.LoadAllBlockAssets();
-        //blockContents = BlockFactory.MakeBlockContentsFromJSON();
-        //WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
-        //if (blockContents == null || worldData == null)
-        //    return;
-        //blockDrawers = new List<BlockDrawer>();
-        //foreach (var bc in blockContents)
-        //{
-        //    blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
-        //}
-        //
-        //BlockFactory.CreateLinks(blockDrawers, blockContents);
-        //currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
-        //_zoom = worldData.currentZoomValue;
-        //_zoomArea = position;
+        BlockFactory.LoadAllBlockAssets();
+        blockContents = BlockFactory.MakeBlockContentsFromJSON();
+        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
+        if (blockContents == null || worldData == null)
+            return;
+        blockDrawers = new List<BlockDrawer>();
+        foreach (var bc in blockContents)
+        {
+            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
+        }
+        
+        BlockFactory.CreateLinks(blockDrawers, blockContents);
+        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
+        _zoom = worldData.currentZoomValue;
+        _zoomArea = position;
+    }
+    private void OnFocus()
+    {
+        if (highlightedObjIndex != -1)
+        {
+            EditCallback(highlightedObjIndex);
+        }
+    }
+    private void OnLostFocus()
+    {
+        ActiveEditorTracker.sharedTracker.isLocked = false;
     }
 
     public void FirstTimeInit()
@@ -171,28 +182,6 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-    private void OnFocus()
-    {
-        BlockFactory.LoadAllBlockAssets();
-        blockContents = BlockFactory.MakeBlockContentsFromJSON();
-        WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
-        if (blockContents == null || worldData == null)
-            return;
-        blockDrawers = new List<BlockDrawer>();
-        foreach (var bc in blockContents)
-        {
-            blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
-        }
-
-        BlockFactory.CreateLinks(blockDrawers, blockContents);
-        currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
-        _zoom = worldData.currentZoomValue;
-        _zoomArea = position;
-        if (highlightedObjIndex != -1)
-        {
-            EditCallback(highlightedObjIndex);
-        }
-    }
 
     private void OnGUI()
     {
@@ -214,15 +203,15 @@ public class SceneGraph : EditorWindow
                     menu.AddDisabledItem(new GUIContent("Delete Block"));
                 else
                     menu.AddItem(new GUIContent("Delete Block"), false, DeleteBlock);
-                menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
                 menu.AddItem(new GUIContent("Edit Block"), false, EditCallback, index);
+                menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
                 if (blockDrawers[index].blockLink == null)
                 {
                     menu.AddDisabledItem(new GUIContent("Remove link"), false);
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("Remove link"), false, UnlinkCallback, index);
+                    menu.AddItem(new GUIContent("Remove Link"), false, UnlinkCallback, index);
                 }
 
                 menu.ShowAsContext();
@@ -231,7 +220,7 @@ public class SceneGraph : EditorWindow
             {
                 GenericMenu menu = new GenericMenu();
                 menu.AddItem(new GUIContent("Add Story Node"), false, AddRectNode, Event.current.mousePosition);
-                menu.AddItem(new GUIContent("Add Choice Node"), false, AddDiamondNode, Event.current.mousePosition);
+                //menu.AddItem(new GUIContent("Add Choice Node"), false, AddDiamondNode, Event.current.mousePosition);
                 menu.ShowAsContext();
             }
         }
@@ -297,10 +286,6 @@ public class SceneGraph : EditorWindow
             {
                 UnselectBlock();
             }
-        }
-        if(Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Delete || Event.current.keyCode == KeyCode.Backspace))
-        {
-
         }
 
     }

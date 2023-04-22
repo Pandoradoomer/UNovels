@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Build.Content;
 using UnityEngine;
@@ -21,7 +22,8 @@ public class CharacterDataInspector : Editor
     SerializedProperty debugShowLeft;
 
     private bool isCharacterNameHighlighted = false;
-    GameObject[] go = new GameObject[3];
+
+    Canvas canvas;
 
     private void OnEnable()
     {
@@ -35,6 +37,115 @@ public class CharacterDataInspector : Editor
         debugShowRight = serializedObject.FindProperty("ShowDebugRight");
         debugShowCentre = serializedObject.FindProperty("ShowDebugCentre");
         debugShowLeft = serializedObject.FindProperty("ShowDebugLeft");
+        SceneView.duringSceneGui += OnSceneGUI;
+        canvas = FindObjectOfType<Canvas>();
+    }
+
+    private void OnDisable()
+    {
+        SceneView.duringSceneGui -= OnSceneGUI;
+    }
+
+    public void OnSceneGUI(SceneView sv)
+    {
+        CharacterData cd = target as CharacterData;
+        if (cd != null)
+        {
+            if (cd.ShowDebugLeft)
+            {
+                Rect r = new Rect();
+                Vector2 pos = canvas.pixelRect.center;
+                pos.x += -250 * canvas.scaleFactor;
+                pos.y += -26 * canvas.scaleFactor;
+
+                pos.x -= cd.imgSize.x * canvas.scaleFactor / 2.0f;
+                pos.y -= cd.imgSize.y * canvas.scaleFactor / 2.0f;
+                r.position = pos;
+                r.size = cd.imgSize * canvas.scaleFactor;
+                float sizeMult = 192/SceneView.currentDrawingSceneView.camera.orthographicSize;
+                Handles.Label(r.position + Vector2.up * r.size.y /2 + Vector2.right * r.size.x / 2, new GUIContent()
+                {
+                    image = cd.characterImage.texture
+                }, new GUIStyle()
+                {
+                    fixedHeight = r.size.y * sizeMult,
+                    fixedWidth = r.size.x * sizeMult,
+                    stretchWidth = false,
+                    stretchHeight = false,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = Mathf.FloorToInt(200/sizeMult),
+                    wordWrap = true,
+                    normal = new GUIStyleState()
+                    {
+                        textColor = Color.green,
+                    }
+                    
+                });
+            }
+            if (cd.ShowDebugCentre)
+            {
+                Rect r = new Rect();
+                Vector2 pos = canvas.pixelRect.center;
+                pos.x += 0;
+                pos.y += -26 * canvas.scaleFactor;
+
+                pos.x -= cd.imgSize.x * canvas.scaleFactor / 2.0f;
+                pos.y -= cd.imgSize.y * canvas.scaleFactor / 2.0f;
+                r.position = pos;
+                r.size = cd.imgSize * canvas.scaleFactor;
+                float sizeMult = 192 / SceneView.currentDrawingSceneView.camera.orthographicSize;
+                Handles.Label(r.position + Vector2.up * r.size.y / 2 + Vector2.right * r.size.x / 2, new GUIContent()
+                {
+                    image = cd.characterImage.texture
+                }, new GUIStyle()
+                {
+                    fixedHeight = r.size.y * sizeMult,
+                    fixedWidth = r.size.x * sizeMult,
+                    stretchWidth = false,
+                    stretchHeight = false,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = Mathf.FloorToInt(200 / sizeMult),
+                    wordWrap = true,
+                    normal = new GUIStyleState()
+                    {
+                        textColor = Color.green,
+                    }
+
+                });
+            }
+
+            if (cd.ShowDebugRight)
+            {
+                Rect r = new Rect();
+                Vector2 pos = canvas.pixelRect.center;
+                pos.x += 250 * canvas.scaleFactor;
+                pos.y += -26 * canvas.scaleFactor;
+
+                pos.x -= cd.imgSize.x * canvas.scaleFactor / 2.0f;
+                pos.y -= cd.imgSize.y * canvas.scaleFactor / 2.0f;
+                r.position = pos;
+                r.size = cd.imgSize * canvas.scaleFactor;
+                float sizeMult = 192 / SceneView.currentDrawingSceneView.camera.orthographicSize;
+                Handles.Label(r.position + Vector2.up * r.size.y / 2 + Vector2.right * r.size.x / 2, new GUIContent()
+                {
+                    image = cd.characterImage.texture
+                }, new GUIStyle()
+                {
+                    fixedHeight = r.size.y * sizeMult,
+                    fixedWidth = r.size.x * sizeMult,
+                    stretchWidth = false,
+                    stretchHeight = false,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = Mathf.FloorToInt(200 / sizeMult),
+                    wordWrap = true,
+                    normal = new GUIStyleState()
+                    {
+                        textColor = Color.green,
+                    }
+
+                });
+            }
+        }
     }
 
 
