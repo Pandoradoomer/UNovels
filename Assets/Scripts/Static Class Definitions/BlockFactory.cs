@@ -373,7 +373,8 @@ public class BlockFactory
 
     public static void DeleteBlockAsset(BlockDrawer bd)
     {
-        SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        SceneEditor se = sceneEditors.Find(x => x.name == bd.labelText);
+        sceneEditors.Remove(se);
         string path = se.path;
         AssetDatabase.DeleteAsset(se.path);
         string folderPath = se.path.Remove(se.path.LastIndexOf("/"));

@@ -406,7 +406,7 @@ public class SceneGraph : EditorWindow
     {
         Vector2? pos = data as Vector2?;
         bool isStart = blockDrawers.Count == 0;
-        Vector2 realPos = pos.Value - Vector2.up * _zoomArea.yMin;
+        Vector2 realPos = ConvertScreenCoordsToZoomCoords(pos.Value) - currentWorldOrigin;//pos.Value - Vector2.up * _zoomArea.yMin;
         realPos.x = Mathf.Round(realPos.x / 20.0f) * 20.0f;
         realPos.y = Mathf.Round(realPos.y / 20.0f) * 20.0f;
         BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, realPos, isStart);

@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
   m_Name: Scene 2
   m_EditorClassIdentifier: 
-  _guid: 32ac71f1-714a-4074-8c6c-c138f31ed27c
+  _guid: dc08426b-5735-4d65-9876-9ad10c20949c
   SceneName: Scene 2
   entryTransition: 1
   entryTransitionValue: 0
   exitTransition: 1
-  exitTransitionValue: 4
-  backgroundImage: {fileID: 21300000, guid: 9eff2c67414cdd64a9a0b6e5fc3e0ccb, type: 3}
+  exitTransitionValue: 0
+  backgroundImage: {fileID: 0}
   backgroundMusic: {fileID: 0}
-  _path: Assets/Scriptable Objects/SceneEditor/Objects/32ac71f1-714a-4074-8c6c-c138f31ed27c/Scene
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/dc08426b-5735-4d65-9876-9ad10c20949c/Scene
     2.asset
   isStart: 0
   linkedScene: {fileID: 0}

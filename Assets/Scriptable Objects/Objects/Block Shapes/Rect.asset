@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultLabelText: New Scene
   blockShape: 0
-  size: {x: 100, y: 40}
+  size: {x: 120, y: 40}
