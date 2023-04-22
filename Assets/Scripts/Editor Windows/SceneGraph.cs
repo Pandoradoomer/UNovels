@@ -140,6 +140,8 @@ public class SceneGraph : EditorWindow
 
         }
 
+        Handles.DrawSolidDisc(currentWorldOrigin, Vector3.forward, 1);
+
         EditorZoomArea.End();
     }
 
@@ -149,8 +151,7 @@ public class SceneGraph : EditorWindow
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Recentre view"))
         {
-            currentWorldOrigin = Vector2.zero;
-            _zoomCoordsOrigin = currentWorldOrigin;
+            RecentreView();
         }
         if(GUILayout.Button("Save"))
         {
@@ -166,6 +167,7 @@ public class SceneGraph : EditorWindow
         }
         GUILayout.EndHorizontal();
         GUILayout.Label($"MousePos x: {Event.current.mousePosition.x} y: {Event.current.mousePosition.y}");
+        GUILayout.Label($"World Origin {currentWorldOrigin}");
         GUILayout.Label("Zoom: " + _zoom);
         _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax, new[]
         {
@@ -321,6 +323,64 @@ public class SceneGraph : EditorWindow
         selectedObjIndex = -1;
         selectMousePos = Vector2.zero;
         selectObjPos = Vector2.zero;
+    }
+
+    void RecentreView()
+    {
+        var oldWorldOrigin = currentWorldOrigin;
+        currentWorldOrigin = Vector2.zero;
+        int iter = 100;
+        while (currentWorldOrigin != oldWorldOrigin && iter != 0)
+        {
+            var apparentWorldOrigin = ConvertScreenCoordsToZoomCoords(new Vector2(position.width / 2, (position.height - _zoomArea.yMin) / 2));
+            apparentWorldOrigin /= 2;
+            apparentWorldOrigin.y += (_zoomArea.yMin / 2) / _zoom;
+            oldWorldOrigin = currentWorldOrigin;
+            currentWorldOrigin = apparentWorldOrigin;
+            _zoomCoordsOrigin = currentWorldOrigin;
+            iter--;
+        }
+        _zoomCoordsOrigin = Vector2.zero;
+        var startIndex = blockDrawers.FindIndex(bd => bd.isStart);
+        var dist = - blockDrawers[startIndex].blockClass.size / 2 - blockDrawers[startIndex].pos;
+        blockDrawers[startIndex].pos += dist;
+
+        foreach(BlockDrawer bd in blockDrawers)
+        {
+            if(!bd.isStart)
+                bd.pos += dist;
+        }
+    }
+
+
+    void RearrangeBlocks()
+    {
+        Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
+        float initialY = InitialPos.y;
+        int index = -1;
+        for (int i = 0; i < blockDrawers.Count; i++)
+        {
+            var bd = blockDrawers[i];
+            if (bd.isStart)
+            {
+                index = i;
+                break;
+            }
+        }
+        BlockDrawer startBlock = blockDrawers[index];
+        blockDrawers.RemoveAt(index);
+        blockDrawers.Insert(0, startBlock);
+        foreach (BlockDrawer bd in blockDrawers)
+        {
+            bd.pos = InitialPos;
+            InitialPos.y += bd.blockClass.size.y * 1.5f;
+            if (InitialPos.y + bd.blockClass.size.y > position.height - 2 * bd.blockClass.size.y)
+            {
+                InitialPos.y = initialY;
+                InitialPos.x += bd.blockClass.size.x * 1.5f;
+            }
+        }
+        Save();
     }
 
     void EditCallback(object data)
@@ -502,36 +562,6 @@ public class SceneGraph : EditorWindow
             Handles.DrawLine(start, finish, 0.01f * _zoom);
         }
         Handles.color = c;
-    }
-
-    void RearrangeBlocks()
-    {
-        Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
-        float initialY = InitialPos.y;
-        int index = -1;
-        for (int i = 0; i < blockDrawers.Count; i++)
-        {
-            var bd = blockDrawers[i];
-            if(bd.isStart)
-            {
-                index = i;
-                break;
-            }
-        }
-        BlockDrawer startBlock = blockDrawers[index];
-        blockDrawers.RemoveAt(index);
-        blockDrawers.Insert(0, startBlock);
-        foreach(BlockDrawer bd in blockDrawers)
-        {
-            bd.pos = InitialPos;
-            InitialPos.y += bd.blockClass.size.y * 1.5f;
-            if (InitialPos.y + bd.blockClass.size.y > position.height - 2 * bd.blockClass.size.y)
-            {
-                InitialPos.y = initialY;
-                InitialPos.x += bd.blockClass.size.x * 1.5f;
-            }
-        }
-        Save();
     }
 
 }
