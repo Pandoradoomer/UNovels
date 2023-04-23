@@ -18,10 +18,34 @@ MonoBehaviour:
   entryTransitionValue: 0
   exitTransition: 1
   exitTransitionValue: 0
-  backgroundImage: {fileID: 0}
+  backgroundImage: {fileID: 21300000, guid: d5396521c00448046ac385ed60c1c541, type: 3}
   backgroundMusic: {fileID: 0}
   _path: Assets/Scriptable Objects/SceneEditor/Objects/8431b02b-d677-4ab9-9a72-9ec5adc63244/Scene
     1.asset
   isStart: 1
-  linkedScene: {fileID: 0}
-  Commands: []
+  linkedScene: {fileID: 11400000, guid: ce7c41a46a0e35249ac124f3f98d819b, type: 2}
+  Commands:
+  - type: 0
+    dialogueText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent
+      ac lacinia ante, vitae lobortis lorem. Vivamus mollis, dolor ut tristique ultricies,
+      velit est venenatis nibh, vitae bibendum ligula justo eget ligula. Praesent
+      nec lobortis tortor. Pellentesque vestibulum eros nibh, in aliquet dui pulvinar
+      molestie.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 0
+    IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: 'Aliquam vitae ligula interdum, varius nibh eget, efficitur mauris.
+      Sed mollis semper interdum. Vestibulum tristique varius condimentum. Orci varius
+      natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. '
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 0
+    IsShow: 0
+    Refresh: 0

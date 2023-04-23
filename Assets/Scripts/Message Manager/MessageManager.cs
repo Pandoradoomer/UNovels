@@ -9,6 +9,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UI;
 
@@ -64,6 +65,7 @@ public class MessageManager : MonoBehaviour
     bool isMessageRunning = false;
     bool isAtEndOfLine = false;
     bool waitingForInput = false;
+    bool isPaused = false;
 
     public float speed = 20.0f;
     public float baseSpeed= 20.0f;
@@ -75,6 +77,8 @@ public class MessageManager : MonoBehaviour
     Vector2 offMaxNarrator;
 
     private int maxDialogueLines = -1;
+
+    EventSystem es = null;
 
     public static MessageManager Instance;
     private void Awake()
@@ -101,6 +105,8 @@ public class MessageManager : MonoBehaviour
         volumeSlider.value = 1.0f;
         if(mainCamera == null)
             mainCamera = FindObjectOfType<Camera>();
+        if (es == null)
+            es = FindObjectOfType<EventSystem>();
 
     }
 
@@ -126,7 +132,7 @@ public class MessageManager : MonoBehaviour
     void Update()
     {
         if(!optionCanvas.activeInHierarchy)
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && !isPaused)
         {
             if (isMessageRunning)
             {
@@ -158,10 +164,12 @@ public class MessageManager : MonoBehaviour
         {
             if(optionCanvas.activeInHierarchy == false)
             {
+                isPaused = true;
                 OpenOptionCanvas();
             }
             else
             {
+                isPaused = false;
                 CloseOptionCanvas();
             }
         }
@@ -594,7 +602,7 @@ public class MessageManager : MonoBehaviour
 
         for (int i = 0; i < text.Length; i++)
         {
-            while (waitingForInput)
+            while (waitingForInput || isPaused)
                 yield return null;
             if (currTagIndex != -1)
             {
@@ -702,7 +710,7 @@ public class MessageManager : MonoBehaviour
 
         for (int i = 0; i < text.Length; i++)
         {
-            while (waitingForInput)
+            while (waitingForInput || isPaused)
                 yield return null;
             if (currTagIndex != -1)
             {
@@ -1078,17 +1086,18 @@ public class MessageManager : MonoBehaviour
     void CloseOptionCanvas()
     {
         Time.timeScale = 1;
-        waitingForInput = false;
         optionCanvas.SetActive(false);
     }
     public void OnOptionButtonClick()
     {
         optionButton.gameObject.SetActive(false);
+        isPaused = true;
         OpenOptionCanvas();
     }
 
     public void OnCloseButtonClick()
     {
+        isPaused = false;
         optionButton.gameObject.SetActive(true);
         CloseOptionCanvas();
     }
