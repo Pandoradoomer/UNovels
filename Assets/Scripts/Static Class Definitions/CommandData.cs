@@ -29,5 +29,6 @@ public class CommandData
     public string emotion;
     public float Time;
     public bool IsShow;
+    public bool Refresh;
 
 }

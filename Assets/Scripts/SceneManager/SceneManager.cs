@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditor;
 
 public class SceneManager : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class SceneManager : MonoBehaviour
     public SceneEditor currScene = null;
     public bool isScenePlaying = false;
     public bool hasEnded = false;
+
+    public UserSettings userSettings = null; 
 
     public static SceneManager Instance;
     private void Awake()
@@ -24,6 +27,7 @@ public class SceneManager : MonoBehaviour
         {
             Instance = this;
         }
+        userSettings = AssetDatabase.LoadAssetAtPath("Assets/Scriptable Objects/User Settings/Objects/_UserSettings.asset", typeof(UserSettings)) as UserSettings;
     }
 
     void Start()

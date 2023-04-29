@@ -36,9 +36,10 @@ public class SceneGraph : EditorWindow
     Vector2 clickStartPos = Vector2.zero;
 
     bool controlPressed = false;
+
+    bool hasEnabled = false;
     private void OnEnable()
     {
-
         BlockFactory.LoadAllBlockAssets();
         blockContents = BlockFactory.MakeBlockContentsFromJSON();
         WorldData worldData = BlockFactory.MakeWorldDataFromJSON();
@@ -49,11 +50,22 @@ public class SceneGraph : EditorWindow
         {
             blockDrawers.Add(BlockFactory.CreateBlockDrawer(bc));
         }
-
+        
         BlockFactory.CreateLinks(blockDrawers, blockContents);
         currentWorldOrigin = worldData.currentWorldOrigin.Vector2();
         _zoom = worldData.currentZoomValue;
         _zoomArea = position;
+    }
+    private void OnFocus()
+    {
+        if (highlightedObjIndex != -1)
+        {
+            EditCallback(highlightedObjIndex);
+        }
+    }
+    private void OnLostFocus()
+    {
+        ActiveEditorTracker.sharedTracker.isLocked = false;
     }
 
     public void FirstTimeInit()
@@ -119,7 +131,7 @@ public class SceneGraph : EditorWindow
                 if (blockDrawers.IndexOf(bd) == highlightedObjIndex)
                     bd.highlightDrawCallback(bd.pos + currentWorldOrigin, bd.blockClass);
             }
-            bd.callback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
+            bd.drawCallback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
             bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, Color.black, bd.blockClass);
             if(bd.isStart)
             {
@@ -128,6 +140,8 @@ public class SceneGraph : EditorWindow
 
         }
 
+        Handles.DrawSolidDisc(currentWorldOrigin, Vector3.forward, 1);
+
         EditorZoomArea.End();
     }
 
@@ -135,14 +149,13 @@ public class SceneGraph : EditorWindow
     {
         GUILayout.BeginVertical();
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Recentre view"))
-        {
-            currentWorldOrigin = Vector2.zero;
-            _zoomCoordsOrigin = currentWorldOrigin;
-        }
-        if(GUILayout.Button("Save"))
+        if (GUILayout.Button("Save"))
         {
             Save();
+        }
+        if (GUILayout.Button("Recentre view"))
+        {
+            RecentreView();
         }
         if(GUILayout.Button(new GUIContent()
         {
@@ -152,12 +165,17 @@ public class SceneGraph : EditorWindow
         {
             RearrangeBlocks();
         }
-        GUILayout.EndHorizontal();
+        GUILayout.EndHorizontal();/*
         GUILayout.Label($"MousePos x: {Event.current.mousePosition.x} y: {Event.current.mousePosition.y}");
-        GUILayout.Label("Zoom: " + _zoom);
-        _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax);
+        GUILayout.Label($"World Origin {currentWorldOrigin}");
+        GUILayout.Label("Zoom: " + _zoom);*/
+        _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax, new[]
+        {
+            GUILayout.MaxWidth(100),
+            GUILayout.MinWidth(50)
+        }) ;
         _zoom = Mathf.Round(_zoom * 10) / 10;
-
+        GUILayout.Space(10);
         GUILayout.EndVertical();
         if (Event.current.type == EventType.Repaint)
         {
@@ -170,27 +188,15 @@ public class SceneGraph : EditorWindow
     }
     #endregion
 
-    private void OnFocus()
+    void HandleEvents()
     {
-        if(highlightedObjIndex != -1)
-        {
-            EditCallback(highlightedObjIndex);
-
-        }
-    }
-
-    private void OnGUI()
-    {
-        DrawZoomArea();
-        DrawNonZoomArea();
-        
 
         //right-click
         if (Event.current.type == EventType.MouseDown && Event.current.button == 1)
         {
             Vector2 mousePos = Event.current.mousePosition;
             int index = CheckBlockCollision(Event.current.mousePosition);
-            if(index != -1)
+            if (index != -1)
             {
                 highlightedObjIndex = index;
                 Repaint();
@@ -199,15 +205,15 @@ public class SceneGraph : EditorWindow
                     menu.AddDisabledItem(new GUIContent("Delete Block"));
                 else
                     menu.AddItem(new GUIContent("Delete Block"), false, DeleteBlock);
-                menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
                 menu.AddItem(new GUIContent("Edit Block"), false, EditCallback, index);
+                menu.AddItem(new GUIContent("Link Block"), false, LinkCallback, index);
                 if (blockDrawers[index].blockLink == null)
                 {
                     menu.AddDisabledItem(new GUIContent("Remove link"), false);
                 }
                 else
                 {
-                    menu.AddItem(new GUIContent("Remove link"), false, UnlinkCallback, index);
+                    menu.AddItem(new GUIContent("Remove Link"), false, UnlinkCallback, index);
                 }
 
                 menu.ShowAsContext();
@@ -216,12 +222,12 @@ public class SceneGraph : EditorWindow
             {
                 GenericMenu menu = new GenericMenu();
                 menu.AddItem(new GUIContent("Add Story Node"), false, AddRectNode, Event.current.mousePosition);
-                menu.AddItem(new GUIContent("Add Choice Node"), false, AddDiamondNode, Event.current.mousePosition);
+                //menu.AddItem(new GUIContent("Add Choice Node"), false, AddDiamondNode, Event.current.mousePosition);
                 menu.ShowAsContext();
             }
         }
         //left click
-        if(Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftControl)
+        if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.LeftControl)
         {
             controlPressed = true;
         }
@@ -229,7 +235,7 @@ public class SceneGraph : EditorWindow
         {
             controlPressed = false;
         }
-        if (Event.current.type == EventType.MouseDown && Event.current.button == 0) 
+        if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
         {
             Event e = Event.current;
             bool clickedOnVoid = true;
@@ -239,7 +245,7 @@ public class SceneGraph : EditorWindow
                 BlockDrawer bd = blockDrawers[index];
                 clickedOnVoid = false;
                 SelectBlock(index, e.mousePosition + currentWorldOrigin, bd.pos + currentWorldOrigin);
-                if(bdToLink != null)
+                if (bdToLink != null)
                 {
                     LinkBlocks(bdToLink, bd);
                     bdToLink = null;
@@ -251,42 +257,137 @@ public class SceneGraph : EditorWindow
             {
                 highlightedObjIndex = -1;
                 toLinkObjIndex = -1;
-                if(controlPressed)
+                if (controlPressed)
                 {
                     clickStartPos = e.mousePosition - currentWorldOrigin;
                 }
                 Repaint();
             }
         }
-        if(Event.current.type == EventType.MouseDrag && Event.current.button == 0)
+        if (Event.current.type == EventType.MouseDrag && Event.current.button == 0)
         {
-            if(selectedObjIndex != -1)
+            if (selectedObjIndex != -1)
             {
-                Vector2 offset = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition) - selectMousePos;
-                Vector2 pos = selectObjPos + offset;
+                var currentMousePos = ConvertScreenCoordsToZoomCoords(Event.current.mousePosition + currentWorldOrigin);
+                Vector2 offset =  currentMousePos - selectMousePos;
+                Vector2 originalSelectPos = selectObjPos - currentWorldOrigin;
+                Vector2 pos = originalSelectPos + offset;
                 pos.x = Mathf.Round(pos.x / 20.0f) * 20.0f;
                 pos.y = Mathf.Round(pos.y / 20.0f) * 20.0f;
                 blockDrawers[selectedObjIndex].pos = pos;
-                //blockDrawers[selectedObjIndex].pos = selectObjPos + offset;
                 Repaint();
             }
-            if(controlPressed)
+            if (controlPressed)
             {
                 currentWorldOrigin = -(clickStartPos - Event.current.mousePosition);
                 Repaint();
             }
         }
-        if(Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
         {
-            if(selectedObjIndex != -1)
+            if (selectedObjIndex != -1)
             {
                 UnselectBlock();
             }
         }
-        if(Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Delete || Event.current.keyCode == KeyCode.Backspace))
+        if(Event.current.type == EventType.ScrollWheel)
         {
-
+            var delta = Event.current.delta;
+            _zoom -= Mathf.Sign(delta.y) * 0.1f;
+            _zoom = Mathf.Clamp(_zoom, kZoomMin, kZoomMax);
         }
+    }
+
+
+    private void OnGUI()
+    {
+        DrawZoomArea();
+        DrawNonZoomArea();
+        HandleEvents();
+
+    }
+    void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
+    {
+        selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
+        selectObjPos = objPos;
+        EditCallback(index);
+        var block = blockDrawers[index];
+        blockDrawers.RemoveAt(index);
+        blockDrawers.Add(block);
+        selectedObjIndex = blockDrawers.Count - 1;
+        highlightedObjIndex = selectedObjIndex;
+    }
+
+    void UnselectBlock()
+    {
+        selectedObjIndex = -1;
+        selectMousePos = Vector2.zero;
+        selectObjPos = Vector2.zero;
+    }
+
+    void RecentreView()
+    {
+        var oldWorldOrigin = currentWorldOrigin;
+        currentWorldOrigin = Vector2.zero;
+        int iter = 100;
+        while (currentWorldOrigin != oldWorldOrigin && iter != 0)
+        {
+            var apparentWorldOrigin = ConvertScreenCoordsToZoomCoords(new Vector2(position.width / 2, (position.height - _zoomArea.yMin) / 2));
+            apparentWorldOrigin /= 2;
+            apparentWorldOrigin.y += (_zoomArea.yMin / 2) / _zoom;
+            oldWorldOrigin = currentWorldOrigin;
+            currentWorldOrigin = apparentWorldOrigin;
+            _zoomCoordsOrigin = currentWorldOrigin;
+            iter--;
+        }
+        _zoomCoordsOrigin = Vector2.zero;
+        var startIndex = blockDrawers.FindIndex(bd => bd.isStart);
+        var dist = - blockDrawers[startIndex].blockClass.size / 2 - blockDrawers[startIndex].pos;
+        blockDrawers[startIndex].pos += dist;
+
+        foreach(BlockDrawer bd in blockDrawers)
+        {
+            if(!bd.isStart)
+                bd.pos += dist;
+        }
+    }
+
+
+    void RearrangeBlocks()
+    {
+        Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
+        float initialY = InitialPos.y;
+        RearrangeBlockList();
+        foreach (BlockDrawer bd in blockDrawers)
+        {
+            bd.pos = InitialPos;
+            InitialPos.y += bd.blockClass.size.y * 1.5f;
+            if (InitialPos.y + bd.blockClass.size.y > position.height - 2 * bd.blockClass.size.y)
+            {
+                InitialPos.y = initialY;
+                InitialPos.x += bd.blockClass.size.x * 1.5f;
+            }
+        }
+        RecentreView();
+        Save();
+    }
+
+    void RearrangeBlockList()
+    {
+        BlockDrawer startBlock = blockDrawers.Find(bd => bd.isStart);
+        List<BlockDrawer> newBlocks = new List<BlockDrawer>();
+        BlockDrawer currBlock = startBlock;
+        while(currBlock != null)
+        {
+            newBlocks.Add(currBlock);
+            currBlock = currBlock.blockLink;
+        }
+        foreach(var bd in blockDrawers)
+        {
+            if (!newBlocks.Contains(bd))
+                newBlocks.Add(bd);
+        }
+        blockDrawers = newBlocks;
 
     }
 
@@ -313,7 +414,7 @@ public class SceneGraph : EditorWindow
     {
         Vector2? pos = data as Vector2?;
         bool isStart = blockDrawers.Count == 0;
-        Vector2 realPos = pos.Value - Vector2.up * _zoomArea.yMin;
+        Vector2 realPos = ConvertScreenCoordsToZoomCoords(pos.Value) - currentWorldOrigin;//pos.Value - Vector2.up * _zoomArea.yMin;
         realPos.x = Mathf.Round(realPos.x / 20.0f) * 20.0f;
         realPos.y = Mathf.Round(realPos.y / 20.0f) * 20.0f;
         BlockDrawer bd = BlockFactory.CreateBlockDrawer(BlockShape.Rect, collection, realPos, isStart);
@@ -414,24 +515,6 @@ public class SceneGraph : EditorWindow
         }
         return collisionIndex;
     }
-    void SelectBlock(int index, Vector2 mousePos, Vector2 objPos)
-    {
-        selectMousePos = ConvertScreenCoordsToZoomCoords(mousePos);
-        selectObjPos = objPos;// + currentWorldOrigin;
-        EditCallback(index);
-        var block = blockDrawers[index];
-        blockDrawers.RemoveAt(index);
-        blockDrawers.Add(block);
-        selectedObjIndex = blockDrawers.Count - 1;
-        highlightedObjIndex = selectedObjIndex;
-    }
-
-    void UnselectBlock()
-    {
-        selectedObjIndex = -1;
-        selectMousePos = Vector2.zero;
-        selectObjPos = Vector2.zero;
-    }
 
     private void Save()
     {
@@ -487,36 +570,6 @@ public class SceneGraph : EditorWindow
             Handles.DrawLine(start, finish, 0.01f * _zoom);
         }
         Handles.color = c;
-    }
-
-    void RearrangeBlocks()
-    {
-        Vector2 InitialPos = new Vector2(60, Mathf.Ceil(_zoomArea.yMin / 20) * 20 + 40);
-        float initialY = InitialPos.y;
-        int index = -1;
-        for (int i = 0; i < blockDrawers.Count; i++)
-        {
-            var bd = blockDrawers[i];
-            if(bd.isStart)
-            {
-                index = i;
-                break;
-            }
-        }
-        BlockDrawer startBlock = blockDrawers[index];
-        blockDrawers.RemoveAt(index);
-        blockDrawers.Insert(0, startBlock);
-        foreach(BlockDrawer bd in blockDrawers)
-        {
-            bd.pos = InitialPos;
-            InitialPos.y += bd.blockClass.size.y * 1.5f;
-            if (InitialPos.y + bd.blockClass.size.y > position.height - 2 * bd.blockClass.size.y)
-            {
-                InitialPos.y = initialY;
-                InitialPos.x += bd.blockClass.size.x * 1.5f;
-            }
-        }
-        Save();
     }
 
 }

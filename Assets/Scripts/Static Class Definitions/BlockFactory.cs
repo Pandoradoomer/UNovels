@@ -33,7 +33,7 @@ public class BlockFactory
             pos = pos,
             labelText = bc.defaultLabelText,
             isStart = isStart,
-            callback = DrawRectBlock,
+            drawCallback = DrawRectBlock,
             collisionCallback = CollideWithRect,
             highlightDrawCallback = DrawHighlightRectBlock,
             labelDrawCallback = DrawLabelRect,
@@ -51,7 +51,7 @@ public class BlockFactory
             pos = pos,
             labelText = bc.defaultLabelText,
             isStart = isStart,
-            callback = DrawDiamondBlock,
+            drawCallback = DrawDiamondBlock,
             collisionCallback = CollideWithDiamond,
             highlightDrawCallback = DrawHighlightDiamondBlock,
             labelDrawCallback = DrawLabelDiamond,
@@ -75,37 +75,6 @@ public class BlockFactory
 
     static bool CollideWithDiamond(Vector2 pos, Vector2 diaPos, BlockClass bc, float scale)
     {
-        /*
-        //pos is mouse position
-        //diaPos is the centre of the diamond (intersection of the 2 diagonals)
-        //bc.size gives the half-sizes of the bounding rectangle
-
-        //Heuristic 1: perfect precision, high computation time:
-        //Split the diamond in two triangles; test if the mouse is in either triangle
-
-        var v1 = diaPos + Vector2.up * bc.size.y; //top of the diamond
-        var v2 = diaPos + Vector2.right * bc.size.x; // right of the diamond
-        var v3 = diaPos + Vector2.down * bc.size.y; //bottom of the diamond
-        var v4 = diaPos + Vector2.left * bc.size.x; //left of the diamond
-
-        //luckily, the two triangles have the same area: half the product of the x,y of bc.size
-
-        float area1 = Mathf.Abs((v1.x - pos.x) * (v3.y - pos.y) - (v3.x - pos.x) * (v1.y - pos.y));
-        float area2 = Mathf.Abs((v3.x - pos.x) * (v4.y - pos.y) - (v4.x - pos.x) * (v3.y - pos.y));
-        float area3 = Mathf.Abs((v4.x - pos.x) * (v1.y - pos.y) - (v1.x - pos.x) * (v4.y - pos.y));
-
-        bool tri1 = ((area1 + area2 + area3) == ((bc.size.x * bc.size.y) / 2.0f));
-
-        area1 = Mathf.Abs((v1.x - pos.x) * (v2.y - pos.y) - (v2.x - pos.x) * (v1.y - pos.y));
-        area2 = Mathf.Abs((v2.x - pos.x) * (v3.y - pos.y) - (v3.x - pos.x) * (v2.y - pos.y));
-        area3 = Mathf.Abs((v3.x - pos.x) * (v1.y - pos.y) - (v1.x - pos.x) * (v3.y - pos.y));
-
-        bool tri2 = ((area1 + area2 + area3) == ((bc.size.x * bc.size.y) / 2.0f));
-
-        return tri1 || tri2;*/
-
-        //Heuristic 2: lower precision, lower computation time:
-        //collide with the diamond's bounding box instead of the diamond
 
         Vector2 topLeft = diaPos - new Vector2(bc.size.x, bc.size.y);
 
@@ -301,7 +270,7 @@ public class BlockFactory
             labelText = se.SceneName,
             blockScriptableGuid = bc.drawer.blockScriptableGuid,
             isStart = bc.drawer.isStart,
-            callback = bdc,
+            drawCallback = bdc,
             collisionCallback = bcc,
             highlightDrawCallback  = bhdc,
             labelDrawCallback = bldc,
@@ -356,11 +325,18 @@ public class BlockFactory
     {
         File.Delete(Application.dataPath + "/Stored Data/worldData.json");
         File.Delete(Application.dataPath + "/Stored Data/blockData.json");
-        for(int i = 0; i < sceneEditors.Count; i++)
+        File.Delete(Application.dataPath + "/Stored Data/worldData.json.meta");
+        File.Delete(Application.dataPath + "/Stored Data/blockData.json.meta");
+        if (Directory.Exists(ObjectPath))
         {
-            SceneEditor se = sceneEditors[i];
-            bool hasDeleted1 = AssetDatabase.DeleteAsset(se.path.Remove(se.path.LastIndexOf("/") + 1));
+            Directory.Delete(ObjectPath, true);
         }
+        Directory.CreateDirectory(ObjectPath);
+        //for (int i = 0; i < sceneEditors.Count; i++)
+        //{
+        //    SceneEditor se = sceneEditors[i];
+        //    bool hasDeleted1 = AssetDatabase.DeleteAsset(se.path.Remove(se.path.LastIndexOf("/") + 1));
+        //}
         sceneEditors.Clear();
         AssetDatabase.Refresh();
     }
@@ -397,7 +373,8 @@ public class BlockFactory
 
     public static void DeleteBlockAsset(BlockDrawer bd)
     {
-        SceneEditor se = sceneEditors.Find(x => x.guid == bd.blockScriptableGuid);
+        SceneEditor se = sceneEditors.Find(x => x.name == bd.labelText);
+        sceneEditors.Remove(se);
         string path = se.path;
         AssetDatabase.DeleteAsset(se.path);
         string folderPath = se.path.Remove(se.path.LastIndexOf("/"));

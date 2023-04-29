@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
+  m_Name: Start
+  m_EditorClassIdentifier: 
+  _guid: 8431b02b-d677-4ab9-9a72-9ec5adc63244
+  SceneName: Start
+  entryTransition: 1
+  entryTransitionValue: 1.5
+  exitTransition: 1
+  exitTransitionValue: 1.5
+  backgroundImage: {fileID: 21300000, guid: d5396521c00448046ac385ed60c1c541, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: 0801135fb5273de4f80154ffa128165a, type: 3}
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/8431b02b-d677-4ab9-9a72-9ec5adc63244/Scene
+    1.asset
+  isStart: 1
+  linkedScene: {fileID: 11400000, guid: ce7c41a46a0e35249ac124f3f98d819b, type: 2}
+  Commands:
+  - type: 3
+    dialogueText: 
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 1
+    emotion: Neutral
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0
+  - type: 1
+    dialogueText: 
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: Lorem ipsum sic dolor amet.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0
+  - type: 0
+    dialogueText: Lorem ipsum x2.
+    Character: {fileID: 11400000, guid: 806bf0251b2e2354d99020d52e7d18c1, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0
+  - type: 4
+    dialogueText: Lorem ipsum x2.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Neutral
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0
+  - type: 2
+    dialogueText: Lorem ipsum x2.
+    Character: {fileID: 11400000, guid: 162aff97af229a94c85bef517cef0ea6, type: 2}
+    LocationTo: 0
+    TransitionType: 0
+    emotion: Default
+    Time: 1.5
+    IsShow: 0
+    Refresh: 0

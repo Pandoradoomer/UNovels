@@ -12,7 +12,7 @@ public class CharacterList : EditorWindow
     List<Rect> currentDrawnRects;
     int highlightedIndex = -1;
 
-    [MenuItem("VN_Engine/Show Character List")]
+    [MenuItem("UNovels/Open Character List", priority = 2)]
     static void ShowWindow()
     {
         EditorWindow.GetWindow<CharacterList>();
@@ -133,16 +133,16 @@ public class CharacterList : EditorWindow
         if (charData.characterImage != null)
         {
             Rect drawRect = new Rect(newRect);
-            //drawRect.height = 3 * elemHeight / 2;
-            //drawRect.width = elemWidth / 10;
-            //drawRect.x -= elemWidth / 8;
-            //drawRect.y -= elemHeight / 2;
+            drawRect.height = 3 * elemHeight / 2;
+            drawRect.width = elemWidth / 10;
+            drawRect.x -= elemWidth / 8;
+            drawRect.y -= elemHeight / 2;
             Rect texCoords = new Rect();
             texCoords.x = charData.characterImage.textureRect.x / charData.characterImage.textureRect.width;
             texCoords.y = charData.characterImage.textureRect.y / charData.characterImage.textureRect.height;
             texCoords.width = charData.characterImage.textureRect.width / charData.characterImage.textureRect.width;
             texCoords.height = charData.characterImage.textureRect.height / charData.characterImage.textureRect.height;
-            GUI.DrawTextureWithTexCoords(drawRect, charData.characterImage.texture, texCoords);
+            //GUI.DrawTextureWithTexCoords(drawRect, charData.characterImage.texture, texCoords);
         }
         lastRect = newRect;
     }
@@ -152,7 +152,7 @@ public class CharacterList : EditorWindow
         {
             normal = new GUIStyleState()
             {
-                textColor = Color.white
+                textColor = Color.black
             },
             alignment = TextAnchor.MiddleCenter
         });
@@ -160,10 +160,10 @@ public class CharacterList : EditorWindow
     private void DrawCharacterRect(Rect lastRect, int index)
     {
         if(index == highlightedIndex)
-            Handles.DrawSolidRectangleWithOutline(lastRect, Color.clear, Color.green);
+            Handles.DrawSolidRectangleWithOutline(lastRect, new Color(0.82f, 1.0f, 0.74f), Color.red);
         else
 
-            Handles.DrawSolidRectangleWithOutline(lastRect, Color.clear, Color.white);
+            Handles.DrawSolidRectangleWithOutline(lastRect, new Color(0.82f, 1.0f, 0.74f), Color.white);
     }
 
     private void RemoveCharacter(CharacterData charData)

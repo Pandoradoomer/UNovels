@@ -34,7 +34,7 @@ namespace UnityEditor
             {
                 EditorGUILayout.LabelField(new GUIContent()
                 {
-                    text = "There are no dialogues"
+                    text = "There are no commands"
                 }, EditorStyles.label);
             }
             else
@@ -61,19 +61,19 @@ namespace UnityEditor
             GUIStyle CommandTypeLabelStyle = new GUIStyle()
             {
                 alignment = TextAnchor.MiddleCenter,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
             };
             GUIStyle CharacterStyle = new GUIStyle()
             {
                 alignment = TextAnchor.MiddleCenter,
                 fontStyle = FontStyle.Bold,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
 
             };
             GUIStyle DialogueStyle = new GUIStyle()
             {
                 fontStyle = FontStyle.Italic,
-                normal = new GUIStyleState() { textColor = Color.white }
+                normal = new GUIStyleState() { textColor = Color.black }
             };
             List<Rect> boxes = new List<Rect>();
             GUILayout.Space(4);
@@ -94,13 +94,13 @@ namespace UnityEditor
                 if (i == highlightedIndex)
                 {
                     Rect last = boxes.Last();
-                    last.x--;
-                    last.y--;
-                    last.width += 2;
-                    last.height += 2;
+                    last.x-=2;
+                    last.y-=2;
+                    last.width += 4;
+                    last.height += 4;
                     EditorGUI.DrawRect(last, Color.green);
                 }
-                EditorGUI.DrawRect(boxes.Last(), Color.grey);
+                EditorGUI.DrawRect(boxes.Last(), GetColourByBoxType(type));
                 EditorGUILayout.BeginHorizontal();
                 ShowInsideData(type, list, i, CommandTypeLabelStyle, CharacterStyle, DialogueStyle);
                 EditorGUILayout.EndHorizontal();
@@ -112,6 +112,19 @@ namespace UnityEditor
             }
             GUILayout.Space(2);
             dialoguesRect = boxes;
+        }
+
+        Color GetColourByBoxType(CommandType type)
+        {
+            switch(type)
+            {
+                case CommandType.SAY: return new Color(0.82f, 1.0f, 0.74f); // light green
+                case CommandType.WAIT: return new Color(1.0f, 0.8f, 0.7961f); // light red
+                case CommandType.SHOW: return new Color(0.678f, 0.847f, 0.902f); // light blue
+                case CommandType.MOVE: return new Color(1.0f, 0.835f, 0.5f); //light orange
+                case CommandType.SPRITE: return new Color(1.0f, 1.0f, 0.6f); //light yellow
+                default: return Color.grey;
+            }
         }
         #region Show Inside List Elements
         private void ShowInsideData(CommandType type, SerializedProperty list, int index, GUIStyle style1, GUIStyle style2, GUIStyle style3)
@@ -145,11 +158,11 @@ namespace UnityEditor
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField($"{character.FindProperty("characterName").stringValue}", style2, new[] { GUILayout.Width(50) });
             string s = list.GetArrayElementAtIndex(index).FindPropertyRelative("dialogueText").stringValue;
-            bool truncated = s.Length > 15;
+            bool truncated = s.Length > 13;
             string toShow = "";
             if (truncated)
             {
-                toShow = s.Substring(0, 15) + "...";
+                toShow = s.Substring(0, 13) + "...";
             }
             else toShow = s;
             GUILayout.FlexibleSpace();
@@ -318,15 +331,18 @@ namespace UnityEditor
                 text = "-"
             }, EditorStyles.miniButton))
             {
-                if (highlightedIndex != -1)
+                if(list.arraySize > 0)
                 {
-                    for (int i = highlightedIndex; i < list.arraySize - 1; i++)
+                    if (highlightedIndex != -1)
                     {
-                        list.MoveArrayElement(i + 1, i);
+                        for (int i = highlightedIndex; i < list.arraySize - 1; i++)
+                        {
+                            list.MoveArrayElement(i + 1, i);
+                        }
+                        highlightedIndex = -1;
                     }
-                    highlightedIndex = -1;
+                    list.arraySize--;
                 }
-                list.arraySize--;
             }
         }
         private void ListenForEvents(SerializedProperty list, Event e)
@@ -415,6 +431,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = GetCharacterByName(selectedCharacterName);
@@ -542,6 +560,19 @@ namespace UnityEditor
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedIndex = characterNames.IndexOf(selectedCharacterName);
 
+            var isShowProperty = dialogue.FindPropertyRelative("IsShow");
+            bool isShow = isShowProperty.boolValue;
+
+            var refreshProperty = dialogue.FindPropertyRelative("Refresh");
+            bool refresh = refreshProperty.boolValue;
+
+            var transProperty = dialogue.FindPropertyRelative("TransitionType");
+            string[] transOptions = Enum.GetNames(typeof(TransitionTypes)).ToArray();
+            int selectedTransIndex = transProperty.enumValueIndex;
+
+            var timeProperty = dialogue.FindPropertyRelative("Time");
+            float time = timeProperty.floatValue;
+
             Rect boxRect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Space(5);
             EditorGUILayout.LabelField(new GUIContent()
@@ -566,6 +597,56 @@ namespace UnityEditor
         });
             GUILayout.Space(5);
             EditorGUILayout.EndHorizontal();
+            //if the selected character is not the narrator, 'refresh' is implied
+            if(selectedCharacterName == "Narrator")
+            {
+
+                EditorGUILayout.PropertyField(refreshProperty, new GUIContent()
+                {
+                    text = "Refresh text box?",
+                    tooltip = "If the box is ticked, the narrator text box is cleared prior to this message being shown"
+                });
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(refreshProperty, new GUIContent()
+                {
+                    text = "Auto-scroll text box?",
+                    tooltip = "If the text would not fit inside the text box, it will not require player input to scroll.\n\n" +
+                    " Useful for characters freaking out or talking very quickly"
+                });
+            }
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(isShowProperty, new GUIContent()
+            {
+                text = "Hide text box?",
+                tooltip = "If ticked, hides text box after the text is finished."
+            });
+            EditorGUILayout.EndHorizontal();
+            if(isShow)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Hide transition", GUILayout.Width(160));
+                selectedTransIndex = EditorGUILayout.Popup(selectedTransIndex, transOptions);
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (transOptions[selectedTransIndex] != "NONE")
+                {
+                    if (transOptions[selectedTransIndex] == "FADE")
+                        EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                        {
+                            text = "Fade time",
+                            tooltip = "Over how many seconds does the textbox fade away."
+                        });
+                    else
+                        EditorGUILayout.PropertyField(timeProperty, new GUIContent()
+                        {
+                            text = "Punch strength",
+                            tooltip = "How strong the camera shake should be. Recommended value: 10."
+                        });
+                }
+                EditorGUILayout.EndHorizontal();
+            }
             GUILayout.Space(10);
             EditorGUILayout.EndVertical();
             if (boxRectWidth == -1 && boxRect.width != 0)
@@ -573,6 +654,7 @@ namespace UnityEditor
                 boxRectWidth = boxRect.width;
             }
 
+            transProperty.enumValueIndex = selectedTransIndex;
             characterProperty.objectReferenceValue = GetCharacterByName(options[selectedIndex]);
             dialogueText.stringValue = text;
         }
@@ -593,6 +675,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //location property
             var posProperty = element.FindPropertyRelative("LocationTo");
             string[] posOptions = { "Left", "Centre", "Right" };
@@ -661,6 +745,8 @@ namespace UnityEditor
             var charOptions = characterNames.ToArray();
             var selectedCharacterName = character.FindProperty("characterName").stringValue;
             int selectedCharIndex = characterNames.IndexOf(selectedCharacterName);
+            if (selectedCharIndex == -1)
+                selectedCharIndex = 0;
             //emotion property
             var emotionProperty = element.FindPropertyRelative("emotion");
             var currentCharacterData = GetCharacterByName(selectedCharacterName);

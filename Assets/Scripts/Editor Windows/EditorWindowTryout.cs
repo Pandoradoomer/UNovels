@@ -14,7 +14,7 @@ public class EditorWindowTryout : EditorWindow
     
     GenericGraph<BasicSceneInfo> BasicGraph;
 
-    [MenuItem("Custom Tab/Editor")]
+    //[MenuItem("Custom Tab/Editor")]
     static void ShowEditor()
     {
         EditorWindowTryout editor = EditorWindow.GetWindow<EditorWindowTryout>();
