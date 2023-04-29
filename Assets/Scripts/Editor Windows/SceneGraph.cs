@@ -131,7 +131,7 @@ public class SceneGraph : EditorWindow
                 if (blockDrawers.IndexOf(bd) == highlightedObjIndex)
                     bd.highlightDrawCallback(bd.pos + currentWorldOrigin, bd.blockClass);
             }
-            bd.callback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
+            bd.drawCallback.Invoke(bd.pos + currentWorldOrigin, bd.blockClass);
             bd.labelDrawCallback.Invoke(bd.pos + currentWorldOrigin, bd.labelText, Color.black, bd.blockClass);
             if(bd.isStart)
             {
@@ -149,13 +149,13 @@ public class SceneGraph : EditorWindow
     {
         GUILayout.BeginVertical();
         GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Save"))
+        {
+            Save();
+        }
         if (GUILayout.Button("Recentre view"))
         {
             RecentreView();
-        }
-        if(GUILayout.Button("Save"))
-        {
-            Save();
         }
         if(GUILayout.Button(new GUIContent()
         {
@@ -165,10 +165,10 @@ public class SceneGraph : EditorWindow
         {
             RearrangeBlocks();
         }
-        GUILayout.EndHorizontal();
+        GUILayout.EndHorizontal();/*
         GUILayout.Label($"MousePos x: {Event.current.mousePosition.x} y: {Event.current.mousePosition.y}");
         GUILayout.Label($"World Origin {currentWorldOrigin}");
-        GUILayout.Label("Zoom: " + _zoom);
+        GUILayout.Label("Zoom: " + _zoom);*/
         _zoom = GUILayout.HorizontalSlider(_zoom, kZoomMin, kZoomMax, new[]
         {
             GUILayout.MaxWidth(100),

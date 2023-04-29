@@ -35,7 +35,7 @@ public class BlockDrawer
     public bool isStart;
     public Guid blockScriptableGuid;
     public BlockDrawer blockLink = null;
-    public BlockDrawerCallback callback;
+    public BlockDrawerCallback drawCallback;
     public BlockCollisionCallback collisionCallback;
     public BlockLabelDrawCallback labelDrawCallback;
     public BlockHighlightDrawCallback highlightDrawCallback;

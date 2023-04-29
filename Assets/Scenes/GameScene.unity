@@ -3805,6 +3805,7 @@ MonoBehaviour:
   hiddenNarratorText: {fileID: 1603435076}
   narratorTextBox: {fileID: 219019100}
   canvas: {fileID: 1471169220}
+  gameCanvas: {fileID: 823246557}
   characterTextBox: {fileID: 1179218024}
   mainCamera: {fileID: 0}
   backgroundImage: {fileID: 2107478880}

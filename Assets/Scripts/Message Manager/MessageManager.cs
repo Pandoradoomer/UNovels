@@ -29,6 +29,8 @@ public class MessageManager : MonoBehaviour
     [SerializeField]
     private Canvas canvas;
     [SerializeField]
+    private GameObject gameCanvas;
+    [SerializeField]
     private GameObject characterTextBox;
     [SerializeField]
     private Camera mainCamera;
@@ -189,6 +191,11 @@ public class MessageManager : MonoBehaviour
         yield return StartCoroutine(UnloadScene(scene));
         SceneManager.Instance.currScene = scene.linkedScene;
         SceneManager.Instance.isScenePlaying = false;
+        if(scene.linkedScene == null)
+        {
+            backgroundImage.sprite = null;
+            backgroundImage.color = Color.black;
+        }
     }
     private IEnumerator ParseCommand(CommandData command)
     {
@@ -408,7 +415,7 @@ public class MessageManager : MonoBehaviour
                 if(dialogue.Character.name != "")
                 {
 
-                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], canvas.transform);
+                    var go = Instantiate(characterImages[(int)dialogue.LocationTo], gameCanvas.transform);
                     go.name = dialogue.Character.characterName;
                     go.transform.SetSiblingIndex(1);
                     currentImages.Add(dialogue.Character.characterName, go);
@@ -558,7 +565,7 @@ public class MessageManager : MonoBehaviour
         if (!narratorTextBox.gameObject.activeInHierarchy)
             narratorTextBox.SetActive(true);
         if (characterTextBox.gameObject.activeInHierarchy)
-            characterTextBox.SetActive(true);
+            characterTextBox.SetActive(false);
 
         string invisTag = "<alpha=#00>";
         string text = dialogue.dialogueText;
