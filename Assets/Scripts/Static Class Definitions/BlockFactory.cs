@@ -345,13 +345,13 @@ public class BlockFactory
     {
         SceneEditor newSceneNode = ScriptableObject.CreateInstance<SceneEditor>();
         newSceneNode.SetGuid();
-        bd.blockScriptableGuid = newSceneNode.guid;
+        bd.blockScriptableGuid = newSceneNode._guid.ToString();
         newSceneNode.isStart = isStart;
         newSceneNode.SetName(name);
-        string path = ObjectPath + "/" + newSceneNode.guid.ToString() + "/" + newSceneNode.SceneName + ".asset";
+        string path = ObjectPath + "/" + newSceneNode._guid.ToString() + "/" + newSceneNode.SceneName + ".asset";
         newSceneNode.SetPath(path);
         sceneEditors.Add(newSceneNode);
-        AssetDatabase.CreateFolder(ObjectPath, newSceneNode.guid.ToString());
+        AssetDatabase.CreateFolder(ObjectPath, newSceneNode._guid.ToString());
         AssetDatabase.CreateAsset(newSceneNode, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -373,7 +373,8 @@ public class BlockFactory
 
     public static void DeleteBlockAsset(BlockDrawer bd)
     {
-        SceneEditor se = sceneEditors.Find(x => x.name == bd.labelText);
+        //SceneEditor se = sceneEditors.Find(x => x.SceneName == bd.labelText);
+        SceneEditor se = sceneEditors.Find(x => x._guid == bd.blockScriptableGuid);
         sceneEditors.Remove(se);
         string path = se.path;
         AssetDatabase.DeleteAsset(se.path);

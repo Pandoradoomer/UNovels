@@ -6,9 +6,8 @@ using UnityEngine;
 
 public class SceneEditor : ScriptableObject
 {
-    public Guid guid { get; private set; }
-    [SerializeField]
-    private string _guid;
+    [HideInInspector]
+    public string _guid;
     public string SceneName = "New Scene";
     public TransitionTypes entryTransition = TransitionTypes.FADE;
     public float entryTransitionValue = 0.0f;
@@ -16,7 +15,8 @@ public class SceneEditor : ScriptableObject
     public float exitTransitionValue = 0.0f;
     public Sprite backgroundImage;
     public AudioClip backgroundMusic;
-    public string path { get; private set; }
+    [HideInInspector]
+    public string path;
     [SerializeField]
     private string _path;
     public bool isStart = false;
@@ -32,7 +32,7 @@ public class SceneEditor : ScriptableObject
     }
     public void SetGuid()
     {
-        guid = Guid.NewGuid();
+        var guid = Guid.NewGuid();
         _guid = guid.ToString();
     }
     public string GetGuid()

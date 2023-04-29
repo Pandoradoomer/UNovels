@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edbfa847c4504f94384df2977d431e37, type: 3}
   m_Name: Scene 1
   m_EditorClassIdentifier: 
-  _guid: 65f7f2f2-9146-4433-87ac-023c7a05b15a
+  _guid: a968aeb7-f976-4ef0-80d8-d4234af4e93e
   SceneName: Scene 1
   entryTransition: 1
   entryTransitionValue: 0
@@ -20,7 +20,9 @@ MonoBehaviour:
   exitTransitionValue: 0
   backgroundImage: {fileID: 0}
   backgroundMusic: {fileID: 0}
-  _path: Assets/Scriptable Objects/SceneEditor/Objects/65f7f2f2-9146-4433-87ac-023c7a05b15a/Scene
+  path: Assets/Scriptable Objects/SceneEditor/Objects/a968aeb7-f976-4ef0-80d8-d4234af4e93e/Scene
+    1.asset
+  _path: Assets/Scriptable Objects/SceneEditor/Objects/a968aeb7-f976-4ef0-80d8-d4234af4e93e/Scene
     1.asset
   isStart: 1
   linkedScene: {fileID: 0}
