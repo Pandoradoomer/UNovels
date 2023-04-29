@@ -12,7 +12,7 @@ public class CharacterList : EditorWindow
     List<Rect> currentDrawnRects;
     int highlightedIndex = -1;
 
-    [MenuItem("VN_Engine/Open Character List", priority = 2)]
+    [MenuItem("UNovels/Open Character List", priority = 2)]
     static void ShowWindow()
     {
         EditorWindow.GetWindow<CharacterList>();

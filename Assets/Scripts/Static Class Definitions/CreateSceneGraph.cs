@@ -9,7 +9,7 @@ public class CreateSceneGraph : MonoBehaviour
     private GameObject go = null;
 
     GameObject sceneGo, messageManagerGo;
-    [MenuItem("VN_Engine/Initialise", priority = 1)]
+    [MenuItem("UNovels/Initialise", priority = 1)]
     [ExecuteInEditMode]
     // Start is called before the first frame update
     static void Start()
@@ -38,7 +38,7 @@ public class CreateSceneGraph : MonoBehaviour
         CharacterData.CreateNarrator();
         UserSettings.CreateUserSettings();
     }
-    [MenuItem("VN_Engine/Reset", priority = 1)]
+    [MenuItem("UNovels/Reset", priority = 1)]
     [ExecuteInEditMode]
     static void ResetVNEngine()
     {
@@ -51,14 +51,14 @@ public class CreateSceneGraph : MonoBehaviour
         UserSettings.DeleteUserSettings();
         BlockFactory.HardReset();
     }
-    [MenuItem("VN_Engine/Reset",true)]
+    [MenuItem("UNovels/Reset",true)]
     static bool ValidateResetVNEngine()
     {
         var SceneClass = FindObjectOfType<SceneClassContainer>();
         return SceneClass != null;
     }
 
-    [MenuItem("VN_Engine/Open Scene Structure", priority = 2)]
+    [MenuItem("UNovels/Open Scene Structure", priority = 2)]
     static void OpenSceneGraph()
     {
         var window = EditorWindow.GetWindow<SceneGraph>();
@@ -68,21 +68,21 @@ public class CreateSceneGraph : MonoBehaviour
         }
     }
 
-    [MenuItem("VN_Engine/Open Scene Structure", true)]
+    [MenuItem("UNovels/Open Scene Structure", true)]
     static bool ValidateOpenSceneGraph()
     {
         var SceneClass = FindObjectOfType<SceneClassContainer>();
         return SceneClass != null;
     }
 
-    [MenuItem("VN_Engine/Open User Settings", priority = 2)]
+    [MenuItem("UNovels/Open User Settings", priority = 2)]
     static void OpenUserSettings()
     {
         ActiveEditorTracker.sharedTracker.isLocked = false;
         AssetDatabase.OpenAsset(AssetDatabase.LoadAssetAtPath("Assets/Scriptable Objects/User Settings/Objects/_UserSettings.asset", typeof(UserSettings)));
         ActiveEditorTracker.sharedTracker.isLocked = true;
     }
-    [MenuItem("VN_Engine/Open User Settings", true)]
+    [MenuItem("UNovels/Open User Settings", true)]
     static bool ValidateOpenUserSettings()
     {
         var SceneClass = FindObjectOfType<SceneClassContainer>();
