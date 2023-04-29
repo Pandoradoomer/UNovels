@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1112678cc9e6184fa4fb3eb2d363381, type: 3}
   m_Name: _UserSettings
   m_EditorClassIdentifier: 
-  TextBoxColor: {r: 0.1981132, g: 0.1981132, b: 0.1981132, a: 170}
+  TextBoxColor: {r: 50, g: 50, b: 50, a: 170}
   DialogueFontSize: 22
   CharacterNameFontSize: 18
   TextSpeed: 20
@@ -21,6 +21,6 @@ MonoBehaviour:
   NarratorTextBoxSize: {x: 700, y: 400}
   NarratorTextBoxPosition: {x: 0, y: 0}
   ShowNarratorTextBox: 0
-  ShowCharacterTextBox: 1
+  ShowCharacterTextBox: 0
   camera: {fileID: 0}
   canvas: {fileID: 0}
