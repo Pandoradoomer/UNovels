@@ -377,16 +377,32 @@ public class SceneGraph : EditorWindow
         BlockDrawer startBlock = blockDrawers.Find(bd => bd.isStart);
         List<BlockDrawer> newBlocks = new List<BlockDrawer>();
         BlockDrawer currBlock = startBlock;
-        while(currBlock != null)
+        while(newBlocks.Count != blockDrawers.Count)
         {
-            newBlocks.Add(currBlock);
-            currBlock = currBlock.blockLink;
+            while(currBlock != null)
+            {
+                newBlocks.Add(currBlock);
+                currBlock = currBlock.blockLink;
+            }
+            foreach (var bd in blockDrawers)
+            {
+                if (!newBlocks.Contains(bd))
+                {
+                    currBlock = bd;
+                    break;
+                }
+            }
         }
-        foreach(var bd in blockDrawers)
-        {
-            if (!newBlocks.Contains(bd))
-                newBlocks.Add(bd);
-        }
+        //while(currBlock != null)
+        //{
+        //    newBlocks.Add(currBlock);
+        //    currBlock = currBlock.blockLink;
+        //}
+        //foreach(var bd in blockDrawers)
+        //{
+        //    if (!newBlocks.Contains(bd))
+        //        newBlocks.Add(bd);
+        //}
         blockDrawers = newBlocks;
 
     }
